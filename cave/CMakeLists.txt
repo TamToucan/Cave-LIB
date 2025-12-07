@@ -14,6 +14,9 @@ target_include_directories(${CAVE_LIB_NAME} PUBLIC
     "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Algo"
     "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Util")
 
+set_target_properties(${CAVE_LIB_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+
 if(NOT MSVC)
     set_target_properties(${CAVE_LIB_NAME} PROPERTIES PREFIX "")
 endif()
