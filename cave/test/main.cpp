@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
-#include "core/Cave.h"
-#include "core/CaveInfo.h"
-#include "core/TileTypes.h"
-#include "core/GenerationParams.h"
+#include "Cave.h"
+#include "CaveInfo.h"
+#include "TileTypes.h"
+#include "GenerationParams.h"
 
 int main() {
     Cave::CaveInfo info;

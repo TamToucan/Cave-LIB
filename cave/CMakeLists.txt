@@ -9,6 +9,7 @@ file(GLOB_RECURSE CAVE_SOURCES CONFIGURE_DEPENDS
 
 add_library(${CAVE_LIB_NAME} SHARED ${CAVE_SOURCES})
 target_include_directories(${CAVE_LIB_NAME} PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
     "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/MathStuff"
     "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Algo"
@@ -36,7 +37,8 @@ file(GLOB_RECURSE GDCAVE_SOURCES CONFIGURE_DEPENDS
 
 add_library(${GDCAVE_LIB_NAME} SHARED ${GDCAVE_SOURCES})
 target_include_directories(${GDCAVE_LIB_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/godot"
     "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Util")
 
 if(NOT MSVC)
