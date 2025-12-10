@@ -9,190 +9,247 @@
 using namespace godot;
 
 void GDCave::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_cave_size", "caveSize"), &GDCave::setCaveSize);
-	ClassDB::bind_method(D_METHOD("set_border_cell_size", "cells"), &GDCave::setBorderCellSize);
-	ClassDB::bind_method(D_METHOD("set_cell_size", "cells"), &GDCave::setCellSize);
-	ClassDB::bind_method(D_METHOD("set_start_cell", "x", "y"), &GDCave::setStartCell);
-	ClassDB::bind_method(D_METHOD("set_floor", "floorTileCoords"), &GDCave::setFloor);
-	ClassDB::bind_method(D_METHOD("set_wall", "wallTileCoords"), &GDCave::setWall);
-	ClassDB::bind_method(D_METHOD("set_octaves", "octaves"), &GDCave::setOctaves);
-	ClassDB::bind_method(D_METHOD("set_perlin", "usePerlin"), &GDCave::setPerlin);
-	ClassDB::bind_method(D_METHOD("set_wall_chance", "wallChance"), &GDCave::setWallChance);
-	ClassDB::bind_method(D_METHOD("set_freq", "freq"), &GDCave::setFreq);
-	ClassDB::bind_method(D_METHOD("set_amp", "amp"), &GDCave::setAmp);
-	ClassDB::bind_method(D_METHOD("set_generations", "gens"), &GDCave::setGenerations);
-	ClassDB::bind_method(D_METHOD("make_cave", "pTileMap", "layer", "seed"), &GDCave::make_cave);
+  ClassDB::bind_method(D_METHOD("set_cave_size", "caveSize"),
+                       &GDCave::setCaveSize);
+  ClassDB::bind_method(D_METHOD("set_border_cell_size", "cells"),
+                       &GDCave::setBorderCellSize);
+  ClassDB::bind_method(D_METHOD("set_cell_size", "cells"),
+                       &GDCave::setCellSize);
+  ClassDB::bind_method(D_METHOD("set_start_cell", "x", "y"),
+                       &GDCave::setStartCell);
+  ClassDB::bind_method(D_METHOD("set_floor", "floorTileCoords"),
+                       &GDCave::setFloor);
+  ClassDB::bind_method(D_METHOD("set_wall", "wallTileCoords"),
+                       &GDCave::setWall);
+  ClassDB::bind_method(D_METHOD("set_octaves", "octaves"), &GDCave::setOctaves);
+  ClassDB::bind_method(D_METHOD("set_perlin", "usePerlin"), &GDCave::setPerlin);
+  ClassDB::bind_method(D_METHOD("set_wall_chance", "wallChance"),
+                       &GDCave::setWallChance);
+  ClassDB::bind_method(D_METHOD("set_freq", "freq"), &GDCave::setFreq);
+  ClassDB::bind_method(D_METHOD("set_amp", "amp"), &GDCave::setAmp);
+  ClassDB::bind_method(D_METHOD("set_generations", "gens"),
+                       &GDCave::setGenerations);
+  ClassDB::bind_method(D_METHOD("make_cave", "pTileMap", "layer", "seed"),
+                       &GDCave::make_cave);
 }
 
 GDCave::GDCave() {
-    m_floor_tile = Vector2i(0,0);
-    m_wall_tile = Vector2i(0,1);
+  m_floor_tile = Vector2i(0, 0);
+  m_wall_tile = Vector2i(0, 1);
 }
 
 GDCave::~GDCave() {}
 
-GDCave* GDCave::setCaveSize(Vector2i caveSize) {
-	m_cave_info.mCaveWidth = caveSize.x;
-	m_cave_info.mCaveHeight = caveSize.y;
-	return this;
+GDCave *GDCave::setCaveSize(Vector2i caveSize) {
+  m_cave_info.mCaveWidth = caveSize.x;
+  m_cave_info.mCaveHeight = caveSize.y;
+  return this;
 }
 
-GDCave* GDCave::setBorderCellSize(Vector2i cells) {
-	m_cave_info.mBorderWidth = cells.x;
-	m_cave_info.mBorderHeight = cells.y;
-	return this;
+GDCave *GDCave::setBorderCellSize(Vector2i cells) {
+  m_cave_info.mBorderWidth = cells.x;
+  m_cave_info.mBorderHeight = cells.y;
+  return this;
 }
 
-GDCave* GDCave::setCellSize(Vector2i cells) {
-	m_cave_info.mCellWidth = cells.x;
-	m_cave_info.mCellHeight = cells.y;
-	return this;
+GDCave *GDCave::setCellSize(Vector2i cells) {
+  m_cave_info.mCellWidth = cells.x;
+  m_cave_info.mCellHeight = cells.y;
+  return this;
 }
 
-GDCave* GDCave::setStartCell(int x, int y) {
-	m_cave_info.mStartCellX = x;
-	m_cave_info.mStartCellY = y;
-	return this;
+GDCave *GDCave::setStartCell(int x, int y) {
+  m_cave_info.mStartCellX = x;
+  m_cave_info.mStartCellY = y;
+  return this;
 }
 
-GDCave* GDCave::setFloor(godot::Vector2i floor) {
-	m_floor_tile = floor;
-	return this;
+GDCave *GDCave::setFloor(godot::Vector2i floor) {
+  m_floor_tile = floor;
+  return this;
 }
 
-GDCave* GDCave::setWall(godot::Vector2i wall) {
-	m_wall_tile = wall;
-	return this;
+GDCave *GDCave::setWall(godot::Vector2i wall) {
+  m_wall_tile = wall;
+  return this;
 }
 
-GDCave* GDCave::setOctaves(int octaves) {
-	m_gen_params.mOctaves = octaves;
-	return this;
+GDCave *GDCave::setOctaves(int octaves) {
+  m_gen_params.mOctaves = octaves;
+  return this;
 }
 
-GDCave* GDCave::setWallChance(float wallChance) {
-	m_gen_params.mWallChance = wallChance;
-	return this;
+GDCave *GDCave::setWallChance(float wallChance) {
+  m_gen_params.mWallChance = wallChance;
+  return this;
 }
 
-GDCave* GDCave::setPerlin(bool usePerlin) {
-	m_gen_params.mPerlin = usePerlin;
-	return this;
+GDCave *GDCave::setPerlin(bool usePerlin) {
+  m_gen_params.mPerlin = usePerlin;
+  return this;
 }
 
-GDCave* GDCave::setFreq(float freq) {
-	m_gen_params.mFreq = freq;
-	return this;
+GDCave *GDCave::setFreq(float freq) {
+  m_gen_params.mFreq = freq;
+  return this;
 }
 
-GDCave* GDCave::setAmp(float amp) {
-	m_gen_params.mAmp = amp;
-	return this;
+GDCave *GDCave::setAmp(float amp) {
+  m_gen_params.mAmp = amp;
+  return this;
 }
 
-GDCave* GDCave::setGenerations(const godot::Array& gens) {
-    m_gen_params.mGenerations.clear();
-    for (int i = 0; i < gens.size(); ++i) {
-        Array gen = gens[i];
-        if (gen.size() == 9) {
-            Cave::GenerationStep step;
-            step.b3_min = gen[0];
-            step.b3_max = gen[1];
-            step.b5_min = gen[2];
-            step.b5_max = gen[3];
-            step.s3_min = gen[4];
-            step.s3_max = gen[5];
-            step.s5_min = gen[6];
-            step.s5_max = gen[7];
-            step.reps = gen[8];
-            m_gen_params.mGenerations.push_back(step);
-        } else {
-            UtilityFunctions::push_warning("Invalid generation step size");
-        }
+GDCave *GDCave::setGenerations(const godot::Array &gens) {
+  m_gen_params.mGenerations.clear();
+  for (int i = 0; i < gens.size(); ++i) {
+    Array gen = gens[i];
+    if (gen.size() == 9) {
+      Cave::GenerationStep step;
+      step.b3_min = gen[0];
+      step.b3_max = gen[1];
+      step.b5_min = gen[2];
+      step.b5_max = gen[3];
+      step.s3_min = gen[4];
+      step.s3_max = gen[5];
+      step.s5_min = gen[6];
+      step.s5_max = gen[7];
+      step.reps = gen[8];
+      m_gen_params.mGenerations.push_back(step);
+    } else {
+      UtilityFunctions::push_warning("Invalid generation step size");
     }
-    return this;
+  }
+  return this;
 }
 
-void GDCave::make_cave(TileMapLayer* pTileMap, int layer, int seed)
-{
-    m_gen_params.seed = seed;
+void GDCave::make_cave(TileMapLayer *pTileMap, int layer, int seed) {
+  m_gen_params.seed = seed;
 
-    Cave::Cave cave(m_cave_info, m_gen_params);
-    const Cave::TileMap caveMap = cave.generate();
-    copy_core_to_tilemap(pTileMap, layer, caveMap);
-    LOG_INFO("CAVE DONE");
-}
-
-void GDCave::copy_core_to_tilemap(TileMapLayer* pTileMap, int layer, const Cave::TileMap& caveMap) {
-    LOG_INFO("COPYING CORE TO TILEMAP: " << caveMap.size() << "x" << caveMap[0].size());
-    for (int y = 0; y < caveMap.size(); ++y) {
-        for (int x = 0; x < caveMap[0].size(); ++x) {
-            Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
-            Vector2i tile = map_tilename_to_vector2i(tile_name);
-            // If it's on a side border then we insert borderWidth cells
-            if ((x == 0) || (x == caveMap[0].size() - 1)) {
-                for (int i = 0; i < m_cave_info.mBorderWidth; ++i) {
-                    LOG_INFO("SIDE BORDER " << x+i << "," << y << " tile=" << tile.x << "," << tile.y);
-				    pTileMap->set_cell(Vector2i(x+i, y),layer,tile);
-                }
-            }
-            // If it's on top/bottom border then we insert borderHeight cells
-            else if ((y == 0) || (y == caveMap.size() - 1)) {
-                for (int i = 0; i < m_cave_info.mBorderHeight; ++i) {
-                    LOG_INFO("TOP/BOTTOM BORDER " << x << "," << y+i << " tile=" << tile.x << "," << tile.y);
-				    pTileMap->set_cell(Vector2i(x, y+i),layer,tile);
-                }
-            }
-            // Otherwise we insert a cellW x cellH tile
-            else {
-                setCell(pTileMap, layer, x, y, tile);
-            }
-        }
+  Cave::Cave cave(m_cave_info, m_gen_params);
+  const Cave::TileMap caveMap = cave.generate();
+  copy_core_to_tilemap(pTileMap, layer, caveMap);
+  LOG_INFO("CAVE DONE " << caveMap[0].size() << "x" << caveMap.size());
+  for (int y = 0; y < caveMap.size(); ++y) {
+    for (int x = 0; x < caveMap[0].size(); ++x) {
+      Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
+      switch (tile_name) {
+      case Cave::FLOOR:
+        LOG_DEBUG_CONT(" ");
+        break;
+      default:
+        LOG_DEBUG_CONT("#");
+        break;
+      }
     }
+    LOG_DEBUG("");
+  }
+}
+
+void GDCave::copy_core_to_tilemap(TileMapLayer *pTileMap, int layer,
+                                  const Cave::TileMap &caveMap) {
+  LOG_INFO("COPYING CORE TO TILEMAP: " << caveMap.size() << "x"
+                                       << caveMap[0].size());
+
+  for (int y = 0; y < caveMap.size(); ++y) {
+    for (int x = 0; x < caveMap[0].size(); ++x) {
+      Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
+      Vector2i tile = map_tilename_to_vector2i(tile_name);
+      // If it's on a side border then we insert borderWidth cells
+      if ((x == 0) || (x == caveMap[0].size() - 1)) {
+        for (int i = 0; i < m_cave_info.mBorderWidth; ++i) {
+          LOG_DEBUG("SIDE BORDER " << x + i << "," << y << " tile=" << tile.x
+                                   << "," << tile.y);
+          pTileMap->set_cell(Vector2i(x + i, y), layer, tile);
+        }
+      }
+      // If it's on top/bottom border then we insert borderHeight cells
+      else if ((y == 0) || (y == caveMap.size() - 1)) {
+        for (int i = 0; i < m_cave_info.mBorderHeight; ++i) {
+          LOG_DEBUG("TOP/BOTTOM BORDER " << x << "," << y + i << " tile="
+                                         << tile.x << "," << tile.y);
+          pTileMap->set_cell(Vector2i(x, y + i), layer, tile);
+        }
+      }
+      // Otherwise we insert at cellW x cellH tile offset by border
+      else {
+        setCell(pTileMap, layer, x + m_cave_info.mBorderWidth,
+                y + m_cave_info.mBorderHeight, tile);
+      }
+    }
+  }
 }
 
 Vector2i GDCave::map_tilename_to_vector2i(Cave::TileName tile_name) {
-    switch(tile_name) {
-        case Cave::FLOOR: return m_floor_tile;
-        case Cave::WALL: return m_wall_tile;
-        case Cave::T45a: return Vector2i(2,6);
-        case Cave::T45b: return Vector2i(3,6);
-        case Cave::T45c: return Vector2i(0,6);
-        case Cave::T45d: return Vector2i(1,6);
-        case Cave::V60a1: return Vector2i(2,3);
-        case Cave::V60a2: return Vector2i(2,4);
-        case Cave::V60b1: return Vector2i(1,3);
-        case Cave::V60b2: return Vector2i(1,4);
-        case Cave::V60c1: return Vector2i(3,4);
-        case Cave::V60c2: return Vector2i(3,3);
-        case Cave::V60d1: return Vector2i(0,4);
-        case Cave::V60d2: return Vector2i(0,3);
-        case Cave::H30a1: return Vector2i(2,5);
-        case Cave::H30a2: return Vector2i(3,5);
-        case Cave::H30b1: return Vector2i(7,5);
-        case Cave::H30b2: return Vector2i(6,5);
-        case Cave::H30c1: return Vector2i(1,5);
-        case Cave::H30c2: return Vector2i(0,5);
-        case Cave::H30d1: return Vector2i(4,5);
-        case Cave::H30d2: return Vector2i(5,5);
-        case Cave::SINGLE: return Vector2i(4,7);
-        case Cave::END_N: return Vector2i(4,6);
-        case Cave::END_S: return Vector2i(6,6);
-        case Cave::END_E: return Vector2i(5,6);
-        case Cave::END_W: return Vector2i(7,6);
-        default: return Vector2i(-1,-1);
-    }
+  switch (tile_name) {
+  case Cave::FLOOR:
+    return m_floor_tile;
+  case Cave::WALL:
+    return m_wall_tile;
+  case Cave::T45a:
+    return Vector2i(2, 6);
+  case Cave::T45b:
+    return Vector2i(3, 6);
+  case Cave::T45c:
+    return Vector2i(0, 6);
+  case Cave::T45d:
+    return Vector2i(1, 6);
+  case Cave::V60a1:
+    return Vector2i(2, 3);
+  case Cave::V60a2:
+    return Vector2i(2, 4);
+  case Cave::V60b1:
+    return Vector2i(1, 3);
+  case Cave::V60b2:
+    return Vector2i(1, 4);
+  case Cave::V60c1:
+    return Vector2i(3, 4);
+  case Cave::V60c2:
+    return Vector2i(3, 3);
+  case Cave::V60d1:
+    return Vector2i(0, 4);
+  case Cave::V60d2:
+    return Vector2i(0, 3);
+  case Cave::H30a1:
+    return Vector2i(2, 5);
+  case Cave::H30a2:
+    return Vector2i(3, 5);
+  case Cave::H30b1:
+    return Vector2i(7, 5);
+  case Cave::H30b2:
+    return Vector2i(6, 5);
+  case Cave::H30c1:
+    return Vector2i(1, 5);
+  case Cave::H30c2:
+    return Vector2i(0, 5);
+  case Cave::H30d1:
+    return Vector2i(4, 5);
+  case Cave::H30d2:
+    return Vector2i(5, 5);
+  case Cave::SINGLE:
+    return Vector2i(4, 7);
+  case Cave::END_N:
+    return Vector2i(4, 6);
+  case Cave::END_S:
+    return Vector2i(6, 6);
+  case Cave::END_E:
+    return Vector2i(5, 6);
+  case Cave::END_W:
+    return Vector2i(7, 6);
+  default:
+    return Vector2i(-1, -1);
+  }
 }
 
-void GDCave::setCell(TileMapLayer* pTileMap, int layer, int cx, int cy, Vector2i tile) {
-	int mapX = m_cave_info.mBorderWidth + (cx * m_cave_info.mCellWidth);
-    int mapY = m_cave_info.mBorderHeight + (cy * m_cave_info.mCellHeight);
-	for (int y=0; y < m_cave_info.mCellHeight; ++y) {
-		for (int x=0; x < m_cave_info.mCellWidth; ++x) {
-			Vector2i pos(mapX + x, mapY + y);
-            // For some reason Need to use -1,-1 for floor
-			Vector2 t = (tile.x < 0) ? tile : Vector2i(tile.x+x, tile.y+y);
-			pTileMap->set_cell(pos,layer,t);
-		}
-	}
+void GDCave::setCell(TileMapLayer *pTileMap, int layer, int cx, int cy,
+                     Vector2i tile) {
+  int mapX = m_cave_info.mBorderWidth + (cx * m_cave_info.mCellWidth);
+  int mapY = m_cave_info.mBorderHeight + (cy * m_cave_info.mCellHeight);
+  for (int y = 0; y < m_cave_info.mCellHeight; ++y) {
+    for (int x = 0; x < m_cave_info.mCellWidth; ++x) {
+      Vector2i pos(mapX + x, mapY + y);
+      // For some reason Need to use -1,-1 for floor
+      Vector2 t = (tile.x < 0) ? tile : Vector2i(tile.x + x, tile.y + y);
+      pTileMap->set_cell(pos, layer, t);
+    }
+  }
 }
