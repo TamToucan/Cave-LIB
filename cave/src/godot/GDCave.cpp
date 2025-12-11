@@ -147,33 +147,92 @@ void GDCave::make_cave(TileMapLayer *pTileMap, int layer, int seed) {
 
 void GDCave::copy_core_to_tilemap(TileMapLayer *pTileMap, int layer,
                                   const Cave::TileMap &caveMap) {
+  const int BW = m_cave_info.mBorderWidth;
+  const int BH = m_cave_info.mBorderHeight;
   LOG_INFO("COPYING CORE TO TILEMAP: " << caveMap.size() << "x"
-                                       << caveMap[0].size());
+                                       << caveMap[0].size() << " border: " << BW
+                                       << "x" << BW);
 
-  for (int y = 0; y < caveMap.size(); ++y) {
-    for (int x = 0; x < caveMap[0].size(); ++x) {
-      Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
+  // Logical Size (1x1 borders, so logical size is Size - 2)
+  int logicalCaveWdt = caveMap[0].size() - 2;
+  int logicalCaveHgt = caveMap.size() - 2;
+
+  // Calculate Destination Size (BORDER + cells * cellSize)
+  int destWdt =
+      m_cave_info.mBorderWidth * 2 + (logicalCaveWdt * m_cave_info.mCellWidth);
+  int destHgt = m_cave_info.mBorderHeight * 2 +
+                (logicalCaveHgt * m_cave_info.mCellHeight);
+
+  // Loop cave and write tile cells
+  for (int sy = 0; sy < caveMap.size(); ++sy) {
+    //
+    // Calc Y region
+    //
+    int dStartY;
+    int dHeight;
+    bool isBorderRow = true;
+    if (sy == 0) {
+      // Top Border Row
+      dStartY = 0;
+      dHeight = m_cave_info.mBorderHeight;
+    } else if (sy == caveMap.size() - 1) {
+      // Bottom Border Row
+      dStartY = m_cave_info.mBorderHeight +
+                (logicalCaveHgt * m_cave_info.mCellHeight);
+      dHeight = m_cave_info.mBorderHeight;
+    } else {
+      // Inner Cell Row
+      // Start after top border, offset by previous rows
+      dStartY =
+          m_cave_info.mBorderHeight + ((sy - 1) * m_cave_info.mCellHeight);
+      dHeight = m_cave_info.mCellHeight;
+      isBorderRow = false;
+    }
+
+    for (int sx = 0; sx < caveMap[0].size(); ++sx) {
+      //
+      // Calc X region
+      //
+      int dStartX;
+      int dWidth;
+      bool isBorderColumn = true;
+      if (sx == 0) {
+        // Left Border Column
+        dStartX = 0;
+        dWidth = m_cave_info.mBorderWidth;
+      } else if (sx == caveMap[0].size() - 1) {
+        // Right Border Column
+        dStartX = m_cave_info.mBorderWidth +
+                  (logicalCaveWdt * m_cave_info.mCellWidth);
+        dWidth = m_cave_info.mBorderWidth;
+      } else {
+        // Inner Cell Column
+        dStartX =
+            m_cave_info.mBorderWidth + ((sx - 1) * m_cave_info.mCellWidth);
+        dWidth = m_cave_info.mCellWidth;
+        isBorderColumn = false;
+      }
+
+      //
+      // Fill the Rect
+      //
+      Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[sy][sx]);
       Vector2i tile = map_tilename_to_vector2i(tile_name);
-      // If it's on a side border then we insert borderWidth cells
-      if ((x == 0) || (x == caveMap[0].size() - 1)) {
-        for (int i = 0; i < m_cave_info.mBorderWidth; ++i) {
-          LOG_DEBUG("SIDE BORDER " << x + i << "," << y << " tile=" << tile.x
-                                   << "," << tile.y);
-          pTileMap->set_cell(Vector2i(x + i, y), layer, tile);
-        }
+      if (tile_name != Cave::FLOOR && tile_name != Cave::WALL) {
+        tile.x *= m_cave_info.mCellWidth;
+        tile.y *= m_cave_info.mCellHeight;
       }
-      // If it's on top/bottom border then we insert borderHeight cells
-      else if ((y == 0) || (y == caveMap.size() - 1)) {
-        for (int i = 0; i < m_cave_info.mBorderHeight; ++i) {
-          LOG_DEBUG("TOP/BOTTOM BORDER " << x << "," << y + i << " tile="
-                                         << tile.x << "," << tile.y);
-          pTileMap->set_cell(Vector2i(x, y + i), layer, tile);
+      for (int dy = 0; dy < dHeight; ++dy) {
+        for (int dx = 0; dx < dWidth; ++dx) {
+          Vector2i pos(dStartX + dx, dStartY + dy);
+          Vector2i t = tile;
+          // If on border don't acdjust and assume same tile for all (since
+          // border is not WxH cell, but an absolute). FOr some reason floor
+          // needs to use -1,-1 so don't adjust. Otherwise use the WxH cell
+          t.x += (isBorderColumn || (t.x < 0)) ? 0 : dx;
+          t.y += (isBorderRow || (t.x < 0)) ? 0 : dy;
+          pTileMap->set_cell(pos, layer, t);
         }
-      }
-      // Otherwise we insert at cellW x cellH tile offset by border
-      else {
-        setCell(pTileMap, layer, x + m_cave_info.mBorderWidth,
-                y + m_cave_info.mBorderHeight, tile);
       }
     }
   }
