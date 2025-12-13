@@ -28,6 +28,7 @@ target_link_libraries(${CAVE_LIB_NAME}
     PRIVATE Random
     PRIVATE MathStuff)
 
+if(BUILD_GODOT_CAVE)
 # Godot wrapper library
 set(GDCAVE_LIB_NAME GDCave)
 file(GLOB_RECURSE GDCAVE_SOURCES CONFIGURE_DEPENDS
@@ -57,6 +58,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:${GDCAVE_LIB_NAME}>
         "D:/git/the-lott/addons/gdcave/bin")
+endif()
 
 # Test executable for the core cave library
 add_executable(cave_test test/main.cpp)

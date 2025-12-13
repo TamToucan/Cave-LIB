@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
+if(DEFINED BUILD_GODOT)
+    set(BUILD_GODOT_CAVE ${BUILD_GODOT})
+else()
+    set(BUILD_GODOT_CAVE ON)
+endif()
+
 if (NOT ALL_SUBS_BUILD_ON)
     project(Cave-Lib)
     set(CMAKE_CXX_STANDARD 17)
@@ -10,11 +16,13 @@ if (NOT ALL_SUBS_BUILD_ON)
     set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/_deps)
     include(FetchContent)
 
-    FetchContent_Declare(
-        GDExtension
-        GIT_REPOSITORY https://github.com/godotengine/godot-cpp.git
-        GIT_TAG godot-4.3-stable
-    )
+    if(BUILD_GODOT_CAVE)
+        FetchContent_Declare(
+            GDExtension
+            GIT_REPOSITORY https://github.com/godotengine/godot-cpp.git
+            GIT_TAG godot-4.3-stable
+        )
+    endif()
 
     FetchContent_Declare(
         Libs
@@ -22,7 +30,11 @@ if (NOT ALL_SUBS_BUILD_ON)
         GIT_TAG main
     )
 
-    FetchContent_MakeAvailable(GDExtension Libs)
+    if(BUILD_GODOT_CAVE)
+        FetchContent_MakeAvailable(GDExtension Libs)
+    else()
+        FetchContent_MakeAvailable(Libs)
+    endif()
 else()
     message(STATUS "GDCave-EXT is being built as part of Lott-EXT, skipping FetchContent.")
 endif()
