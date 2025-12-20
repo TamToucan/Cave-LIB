@@ -64,3 +64,24 @@ endif()
 add_executable(cave_test test/main.cpp)
 target_include_directories(cave_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(cave_test PRIVATE ${CAVE_LIB_NAME})
+
+option(BUILD_CUTE_SUPPORT "Build Cute support" ON)
+
+if(BUILD_CUTE_SUPPORT)
+    set(CAVE_CUTE_LIB_NAME Cave_Cute)
+    add_library(${CAVE_CUTE_LIB_NAME} SHARED "src/cute/cute_wrapper.cpp")
+
+    target_include_directories(${CAVE_CUTE_LIB_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/core")
+    target_link_libraries(${CAVE_CUTE_LIB_NAME} PRIVATE ${CAVE_LIB_NAME})
+
+    if(TARGET cute)
+        target_link_libraries(${CAVE_CUTE_LIB_NAME} PRIVATE cute)
+        target_include_directories(${CAVE_CUTE_LIB_NAME} PRIVATE "${cute_SOURCE_DIR}/include")
+    else()
+        message(WARNING "Target 'cute' not found. ${CAVE_CUTE_LIB_NAME} may fail to build if cute.h is missing.")
+    endif()
+
+    if(NOT MSVC)
+        set_target_properties(${CAVE_CUTE_LIB_NAME} PROPERTIES PREFIX "")
+    endif()
+endif()
