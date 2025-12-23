@@ -63,7 +63,7 @@ endif()
 # --- 2. Build Core Library (The Fix) ---
 # We point to the specific folder where we moved the core CMake logic
 add_subdirectory(cave/src/core)
-add_library(CaveLib::Cave ALIAS cave)
+add_library(CaveLib::Cave ALIAS Cave)
 
 
 # --- 3. Build Godot Adapter (The Fix) ---
@@ -85,7 +85,7 @@ if(BUILD_CUTE AND CUTE_FOUND)
     if(TARGET CaveLib::Cave)
          add_custom_command(TARGET CuteCave POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:CaveLib::Cave>
+            $<TARGET_FILE:Cave>
             $<TARGET_FILE_DIR:CuteCave>
         )
     endif()

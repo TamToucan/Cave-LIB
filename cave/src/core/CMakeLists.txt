@@ -1,5 +1,5 @@
 # Target Name
-set(CAVE_LIB_NAME cave)
+set(CAVE_LIB_NAME Cave)
 
 # Source Files
 file(GLOB_RECURSE CAVE_SOURCES CONFIGURE_DEPENDS

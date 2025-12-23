@@ -26,7 +26,7 @@ endif()
 # Linking
 # Links against the sibling 'cave' target defined in src/core
 target_link_libraries(${GDCAVE_LIB_NAME}
-    PRIVATE cave
+    PRIVATE Cave
     PUBLIC godot::cpp
 )
 
@@ -36,7 +36,7 @@ target_link_libraries(${GDCAVE_LIB_NAME}
 add_custom_command(
     TARGET ${GDCAVE_LIB_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:cave>
+        $<TARGET_FILE:Cave>
         "D:/git/the-lott/addons/gdcave/bin"
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:${GDCAVE_LIB_NAME}>
