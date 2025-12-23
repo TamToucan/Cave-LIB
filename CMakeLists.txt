@@ -74,21 +74,9 @@ endif()
 
 
 # --- 4. Build Cute Adapter ---
-# This logic lives here in the root (mirroring your Maze setup)
+# This logic lives in a subdirectory for consistency
 if(BUILD_CUTE AND CUTE_FOUND)
-    # Ensure source file exists at 'cave/src/cute/cuteCave.cpp'
-    add_library(CuteCave SHARED cave/src/cute/cuteCave.cpp)
-    target_link_libraries(CuteCave PRIVATE CaveLib::Cave cute)
-    target_include_directories(CuteCave PRIVATE cave/src/cute)
-    
-    # Windows: Copy DLL next to CuteCave so tests can run
-    if(TARGET CaveLib::Cave)
-         add_custom_command(TARGET CuteCave POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:Cave>
-            $<TARGET_FILE_DIR:CuteCave>
-        )
-    endif()
+    add_subdirectory(cave/src/cute)
 endif()
 
 
