@@ -1,4 +1,4 @@
-#include "cuteCave.hpp"
+#include "CuteCave.hpp"
 
 #include "Cave.h"
 #include "CaveInfo.h"
