@@ -21,16 +21,16 @@ public:
 
 public:
   CuteCave();
-  CuteCave *setCaveSize(int width, int height);
-  CuteCave *setBorderCellSize(int width, int height);
-  CuteCave *setCellSize(int width, int height);
-  CuteCave *setStartCell(int x, int y);
-  CuteCave *setOctaves(int octaves);
-  CuteCave *setPerlin(bool usePerlin);
-  CuteCave *setWallChance(float wallChance);
-  CuteCave *setFreq(float freq);
-  CuteCave *setAmp(float amp);
-  CuteCave *setGenerations(std::vector<Cave::GenerationStep> gens);
+  CuteCave& setCaveSize(int width, int height);
+  CuteCave& setBorderCellSize(int width, int height);
+  CuteCave& setCellSize(int width, int height);
+  CuteCave& setStartCell(int x, int y);
+  CuteCave& setOctaves(int octaves);
+  CuteCave& setPerlin(bool usePerlin);
+  CuteCave& setWallChance(float wallChance);
+  CuteCave& setFreq(float freq);
+  CuteCave& setAmp(float amp);
+  CuteCave& setGenerations(std::vector<Cave::GenerationStep> gens);
 
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
 

@@ -91,58 +91,58 @@ namespace CuteCave {
 CuteCave::CuteCave() {
 }
 
-CuteCave *CuteCave::setCaveSize(int width, int height) {
+CuteCave& CuteCave::setCaveSize(int width, int height) {
   m_info.mCaveWidth = width;
   m_info.mCaveHeight = height;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setBorderCellSize(int width, int height) {
+CuteCave& CuteCave::setBorderCellSize(int width, int height) {
   m_info.mBorderWidth = width;
   m_info.mBorderHeight = height;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setCellSize(int width, int height) {
+CuteCave& CuteCave::setCellSize(int width, int height) {
   m_info.mCellWidth = width;
   m_info.mCellHeight = height;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setStartCell(int x, int y) {
+CuteCave& CuteCave::setStartCell(int x, int y) {
   m_info.mStartCellX = x;
   m_info.mStartCellY = y;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setOctaves(int octaves) {
+CuteCave& CuteCave::setOctaves(int octaves) {
   m_gen_params.mOctaves = octaves;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setWallChance(float wallChance) {
+CuteCave& CuteCave::setWallChance(float wallChance) {
   m_gen_params.mWallChance = wallChance;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setPerlin(bool usePerlin) {
+CuteCave& CuteCave::setPerlin(bool usePerlin) {
   m_gen_params.mPerlin = usePerlin;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setFreq(float freq) {
+CuteCave& CuteCave::setFreq(float freq) {
   m_gen_params.mFreq = freq;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setAmp(float amp) {
+CuteCave& CuteCave::setAmp(float amp) {
   m_gen_params.mAmp = amp;
-  return this;
+  return *this;
 }
 
-CuteCave *CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
+CuteCave& CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
   m_gen_params.mGenerations = gens;
-  return this;
+  return *this;
 }
 
 ///////////////////////////////////////////////////////////////////////
