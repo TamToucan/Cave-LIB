@@ -88,6 +88,9 @@ int getAtlasIndex(Cave::TileName tile) {
 
 namespace CuteCave {
 
+CuteCave::CuteCave() {
+}
+
 CuteCave *CuteCave::setCaveSize(int width, int height) {
   m_info.mCaveWidth = width;
   m_info.mCaveHeight = height;
@@ -143,6 +146,7 @@ CuteCave *CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
 }
 
 ///////////////////////////////////////////////////////////////////////
+
 CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
                                             int tile_size) {
   TileAtlas atlas = {};
@@ -206,11 +210,11 @@ CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
 
 ///////////////////////////////////////////////////////////////////////
 
-void CuteCave::make_cave(int seed) {
+const Cave::TileMap CuteCave::make_cave(int seed) {
   m_gen_params.seed = seed;
 
   Cave::Cave cave(m_info, m_gen_params);
-  m_tileMap = cave.generate();
+  return cave.generate();
 }
 
 } // namespace CuteCave

@@ -20,6 +20,7 @@ public:
   };
 
 public:
+  CuteCave();
   CuteCave *setCaveSize(int width, int height);
   CuteCave *setBorderCellSize(int width, int height);
   CuteCave *setCellSize(int width, int height);
@@ -33,14 +34,11 @@ public:
 
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
 
-  void make_cave(int seed);
-
-  const Cave::TileMap &getTileMap() const { return m_tileMap; }
+  const Cave::TileMap make_cave(int seed);
 
 private:
   Cave::CaveInfo m_info;
   Cave::GenerationParams m_gen_params;
-  Cave::TileMap m_tileMap;
 };
 
 } // namespace CuteCave
