@@ -2,7 +2,7 @@
 add_library(CuteCave SHARED)
 
 target_sources(CuteCave PRIVATE
-	cuteCave.cpp
+	CuteCave.cpp
 )
 
 target_include_directories(CuteCave PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -14,6 +14,7 @@ target_link_libraries(CuteCave
 )
 # Explicitly add cute include directory as a fallback
 target_include_directories(CuteCave PRIVATE "${CMAKE_SOURCE_DIR}/deps/cute/include")
+target_include_directories(CuteCave PRIVATE "${CMAKE_SOURCE_DIR}/deps/cute")
 
 set_target_properties(CuteCave PROPERTIES OUTPUT_NAME CuteCave)
 set_target_properties(CuteCave PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)

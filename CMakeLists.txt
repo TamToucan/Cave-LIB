@@ -52,6 +52,9 @@ if(NOT ALL_SUBS_BUILD_ON)
             file(GLOB CUTE_DEPENDENCIES "${CUTE_ROOT}/lib/*.a")
             list(REMOVE_ITEM CUTE_DEPENDENCIES "${CUTE_ROOT}/lib/libcute.a")
             set_target_properties(cute PROPERTIES INTERFACE_LINK_LIBRARIES "${CUTE_DEPENDENCIES}")
+            
+            # Alias cute_lib to cute for consistency with submodule builds
+            add_library(cute_lib ALIAS cute)
         endif()
     endif()
 

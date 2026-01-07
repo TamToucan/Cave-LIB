@@ -317,7 +317,18 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
   //   -1,0 FAIL: 1015=> CHECK: xy:12,1 thick:3 floor:1
   //
   std::vector<int> checkedRooms;
-  for (const auto &[roomID, tiles] : roomsMap) {
+  // FIX: Iterate over rooms in a deterministic order (sorted by roomID)
+  // The original iteration over `roomsMap` (unordered_map) caused
+  // non-deterministic wall detection order.
+  std::vector<int> sortedRoomIds;
+  sortedRoomIds.reserve(roomsMap.size());
+  for (const auto &pair : roomsMap) {
+    sortedRoomIds.push_back(pair.first);
+  }
+  std::sort(sortedRoomIds.begin(), sortedRoomIds.end());
+
+  for (int roomID : sortedRoomIds) {
+    const auto &tiles = roomsMap[roomID];
     checkedRooms.push_back(roomID);
     for (const auto &tile : tiles) {
       for (const auto &dir :
@@ -384,9 +395,23 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
     dsu.addElement(i);
   }
 
+  // FIX: Use a fully deterministic comparator.
+  // Previous comparator only used thickness, which is not unique.
   std::sort(borderWalls.begin(), borderWalls.end(),
             [](const BorderWall &a, const BorderWall &b) {
-              return a.thickness < b.thickness;
+              if (a.thickness != b.thickness)
+                return a.thickness < b.thickness;
+              if (a.room1 != b.room1)
+                return a.room1 < b.room1;
+              if (a.room2 != b.room2)
+                return a.room2 < b.room2;
+              if (a.dir.x != b.dir.x)
+                return a.dir.x < b.dir.x;
+              if (a.dir.y != b.dir.y)
+                return a.dir.y < b.dir.y;
+              if (a.floor1.x != b.floor1.x)
+                return a.floor1.x < b.floor1.x;
+              return a.floor1.y < b.floor1.y;
             });
   LOG_INFO("=== findMST: " << borderWalls.size() << " rooms: " << numRooms);
 
