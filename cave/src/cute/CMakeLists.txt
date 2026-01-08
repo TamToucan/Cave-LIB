@@ -27,4 +27,7 @@ add_custom_command(TARGET CuteCave POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     $<TARGET_FILE:Cave>
     $<TARGET_FILE_DIR:CuteCave>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:cute>
+    $<TARGET_FILE_DIR:CuteCave>
 )

@@ -42,12 +42,28 @@ if(NOT ALL_SUBS_BUILD_ON)
     # Setup Cute (Standalone Mode)
     if(BUILD_CUTE)
         set(CUTE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/deps/cute")
-        if(EXISTS "${CUTE_ROOT}/lib/libcute.a")
+        message(STATUS "Checking for Cute in: ${CUTE_ROOT}")
+        
+        if(EXISTS "${CUTE_ROOT}/lib/libcute.dll.a")
+            message(STATUS "Found Cute DLL Import Library: ${CUTE_ROOT}/lib/libcute.dll.a")
+            set(CUTE_FOUND ON)
+            add_library(cute SHARED IMPORTED GLOBAL)
+            set_target_properties(cute PROPERTIES
+                IMPORTED_IMPLIB "${CUTE_ROOT}/lib/libcute.dll.a"
+                IMPORTED_LOCATION "${CUTE_ROOT}/bin/libcute.dll"
+                INTERFACE_INCLUDE_DIRECTORIES "${CUTE_ROOT}/include;${CUTE_ROOT}"
+            )
+            # Alias cute_lib to cute for consistency with submodule builds
+            add_library(cute_lib ALIAS cute)
+        elseif(EXISTS "${CUTE_ROOT}/lib/libcute.a")
+            message(STATUS "Found Cute Static Library: ${CUTE_ROOT}/lib/libcute.a")
+            message(WARNING "Cute static library found but missing dependencies (SDL). This might fail to link.")
             set(CUTE_FOUND ON)
             add_library(cute STATIC IMPORTED GLOBAL)
             set_target_properties(cute PROPERTIES
                 IMPORTED_LOCATION "${CUTE_ROOT}/lib/libcute.a"
                 INTERFACE_INCLUDE_DIRECTORIES "${CUTE_ROOT}/include;${CUTE_ROOT}"
+                INTERFACE_COMPILE_DEFINITIONS "CF_STATIC"
             )
             file(GLOB CUTE_DEPENDENCIES "${CUTE_ROOT}/lib/*.a")
             list(REMOVE_ITEM CUTE_DEPENDENCIES "${CUTE_ROOT}/lib/libcute.a")
