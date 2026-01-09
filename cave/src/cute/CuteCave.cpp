@@ -187,11 +187,16 @@ CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
     sub.w = tile_size;
     sub.h = tile_size;
 
+    // inset to sample middle of pixel to stop bleeding
+    const float tex_w = (float)w;
+    const float tex_h = (float)h;
+    const float inset = 0.5f;
+
     // UV Coordinates (0,0 is top-left)
-    sub.minx = (float)x / (float)atlas.width_in_tiles;
-    sub.miny = (float)(y + 1) / (float)height_in_tiles;
-    sub.maxx = (float)(x + 1) / (float)atlas.width_in_tiles;
-    sub.maxy = (float)y / (float)height_in_tiles;
+    sub.minx = (float)(x * tile_size + inset) / tex_w;
+    sub.miny = (float)((y + 1) * tile_size - inset) / tex_h;
+    sub.maxx = (float)((x + 1) * tile_size - inset) / tex_w;
+    sub.maxy = (float)(y * tile_size + inset) / tex_h;
   }
 
   // 3. Register atlas
