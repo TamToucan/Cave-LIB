@@ -75,7 +75,7 @@ int getAtlasIndex(Cave::TileName tile) {
     return Idx(7, 6);
 
   case Cave::SINGLE:
-    return Idx(2, 7);
+    return Idx(4, 7);
 
   default:
     return Idx(0, 7); // Default to FLOOR
