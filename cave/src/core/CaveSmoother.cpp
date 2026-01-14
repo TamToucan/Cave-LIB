@@ -6,14 +6,15 @@
  */
 
 #include "CaveSmoother.h"
-#include "Cave.h"
-#include "CaveInfo.h"
-#include "TileTypes.h"
+
 #include <iostream>
 #include <vector>
 
-
+#include "Cave.h"
+#include "CaveInfo.h"
 #include "Debug.h"
+#include "TileTypes.h"
+
 
 namespace Cave {
 
@@ -43,6 +44,7 @@ namespace {
 //   S = set
 //   N = loc of 1st tile to change
 //   M = loc of 2nd tile to change (of loc1 a one tile update)
+//   O = loc of 1st tile to change, but the tile is currently blank
 //
 // YES. 'N' = pos1 and 'M' = pos2. Don't @ me!
 //
@@ -80,6 +82,7 @@ const unsigned char S = 's';
 const unsigned char B = 'b';
 const unsigned char N = 'n';
 const unsigned char M = 'm';
+const unsigned char O = 'o';
 //
 // Two tile updates (30 and 60 slopes)
 //
@@ -123,6 +126,18 @@ unsigned char TileGridNDe[GRD_H][GRD_W] = {
     {S, B, X, X}, {S, N, B, X}, {S, B, X, X}, {X, X, X, X}};
 unsigned char TileGridNDs[GRD_H][GRD_W] = {
     {S, S, S, X}, {B, N, B, X}, {X, B, X, X}, {X, X, X, X}};
+//
+// Dead-Endtile updates
+// - East, South, West, North
+//
+unsigned char TileGridDEe[GRD_H][GRD_W] = {
+    {X, X, S, S}, {X, B, O, S}, {X, X, S, S}, {X, X, X, X}};
+unsigned char TileGridDEs[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, B, X, X}, {S, O, S, X}, {S, S, S, X}};
+unsigned char TileGridDEw[GRD_H][GRD_W] = {
+    {S, S, X, X}, {S, O, B, X}, {S, S, X, X}, {X, X, X, X}};
+unsigned char TileGridDEn[GRD_H][GRD_W] = {
+    {S, S, S, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
 //
 // Single isolated tile update
 //
@@ -228,6 +243,11 @@ UpdateInfo updates[] = {
     {TileGrid2Ds, 0, 0, 0, 0, 0, 0, END_S, IGNORE},
     {TileGrid2De, 0, 0, 0, 0, 0, 0, END_E, IGNORE},
     {TileGrid2Dw, 0, 0, 0, 0, 0, 0, END_W, IGNORE},
+    // dead-ends
+    {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
+    {TileGridDEs, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
+    {TileGridDEe, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
+    {TileGridDEw, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
 #if 0
     // Bit sticking off end
     { TileGrid21n,  0, 0, 0,0, 0,0, FLOOR, IGNORE},
@@ -247,7 +267,7 @@ UpdateInfo updates[] = {
 //
 void createUpdateInfos() {
   LOG_INFO("====================== SMOOTH CREATE UPDATES");
-  for (auto &u : updates) {
+  for (auto& u : updates) {
     const unsigned char (*grid)[GRD_W] = u.pattern;
     int l_mask = 0;
     int l_value = 0;
@@ -259,32 +279,32 @@ void createUpdateInfos() {
     for (int r = 0; r < GRD_H; ++r) {
       for (int c = 0; c < GRD_W; ++c) {
         switch (grid[r][c]) {
-        case X:
-          l_mask |= 0 << s;
-          l_value |= 0 << s;
-          break;
-        case B:
-          l_mask |= 1 << s;
-          l_value |= 0 << s;
-          break;
-        case S:
-          l_mask |= 1 << s;
-          l_value |= 1 << s;
-          break;
-        case N:
-          l_mask |= 1 << s;
-          l_value |= 1 << s;
-          l_xOff1 = c;
-          l_yOff1 = r;
-          break;
-        case M:
-          l_mask |= 1 << s;
-          l_value |= 1 << s;
-          l_xOff2 = c;
-          l_yOff2 = r;
-          break;
-        default:
-          break;
+          case X:
+            l_mask |= 0 << s;
+            l_value |= 0 << s;
+            break;
+          case B:
+            l_mask |= 1 << s;
+            l_value |= 0 << s;
+            break;
+          case S:
+            l_mask |= 1 << s;
+            l_value |= 1 << s;
+            break;
+          case N:
+            l_mask |= 1 << s;
+            l_value |= 1 << s;
+            l_xOff1 = c;
+            l_yOff1 = r;
+            break;
+          case M:
+            l_mask |= 1 << s;
+            l_value |= 0 << s;
+            l_xOff2 = c;
+            l_yOff2 = r;
+            break;
+          default:
+            break;
         }
         --s;
       }
@@ -306,11 +326,11 @@ void createUpdateInfos() {
   }
 }
 
-} // namespace
+}  // namespace
 
 //////////////////////////////////////////////////
 
-CaveSmoother::CaveSmoother(TileMap &tm, const CaveInfo &i)
+CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
     : info(i), tileMap(tm) {
   createUpdateInfos();
 }
@@ -350,7 +370,6 @@ void CaveSmoother::smoothEdges() {
   //
   for (int y = 0; y < info.mCaveHeight - 1; y++) {
     for (int x = 0; x < info.mCaveWidth - 1; x++) {
-
       // Get the value of the 4x4 grid
       LOG_DEBUG("==MASK value " << x << "," << y);
       int value = 0;
@@ -394,7 +413,7 @@ void CaveSmoother::smoothEdges() {
             }
 #else
       int idx = 0;
-      for (const auto &up : updates) {
+      for (const auto& up : updates) {
         LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
                                << " val:" << up.value << " inVal:" << value
                                << " and:" << (value & up.mask) << std::dec);
@@ -410,7 +429,7 @@ void CaveSmoother::smoothEdges() {
           if ((smoothedGrid[pos1.y][pos1.x] == IGNORE) &&
               (smoothedGrid[pos2.y][pos2.x] == IGNORE)) {
             LOG_DEBUG("         SMOOTH1 -> " << up.t1);
-            // Smooth the first (N) tile
+            // Smooth the first (N/O) tile
             // - Need to translate the grid pos back to cave pos
             Cave::setCell(tileMap, pos1.x - 1, pos1.y - 1, up.t1);
             smoothedGrid[pos1.y][pos1.x] = SMOOTHED;
@@ -437,4 +456,4 @@ void CaveSmoother::smoothEdges() {
   }
 }
 
-} // namespace Cave
+}  // namespace Cave

@@ -1,13 +1,13 @@
 #include "CuteCave.hpp"
 
+#include <cute.h>
+
 #include "Cave.h"
 #include "CaveInfo.h"
+#include "Debug.h"
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-#include <cute.h>
-
-#include "Debug.h"
 
 namespace {
 
@@ -17,72 +17,81 @@ int getAtlasIndex(Cave::TileName tile) {
   auto Idx = [](int col, int row) { return (row * 8) + col; };
 
   switch (tile) {
-  case Cave::FLOOR:
-    return Idx(0, 7);
-  case Cave::WALL:
-    return Idx(1, 7);
+    case Cave::FLOOR:
+      return Idx(0, 7);
+    case Cave::WALL:
+      return Idx(1, 7);
 
-  case Cave::T45a:
-    return Idx(2, 6);
-  case Cave::T45b:
-    return Idx(3, 6);
-  case Cave::T45c:
-    return Idx(0, 6);
-  case Cave::T45d:
-    return Idx(1, 6);
+    case Cave::T45a:
+      return Idx(2, 6);
+    case Cave::T45b:
+      return Idx(3, 6);
+    case Cave::T45c:
+      return Idx(0, 6);
+    case Cave::T45d:
+      return Idx(1, 6);
 
-  case Cave::V60a1:
-    return Idx(2, 3);
-  case Cave::V60a2:
-    return Idx(2, 4);
-  case Cave::V60b1:
-    return Idx(1, 3);
-  case Cave::V60b2:
-    return Idx(1, 4);
-  case Cave::V60c1:
-    return Idx(3, 4);
-  case Cave::V60c2:
-    return Idx(3, 3);
-  case Cave::V60d1:
-    return Idx(0, 4);
-  case Cave::V60d2:
-    return Idx(0, 3);
+    case Cave::V60a1:
+      return Idx(2, 3);
+    case Cave::V60a2:
+      return Idx(2, 4);
+    case Cave::V60b1:
+      return Idx(1, 3);
+    case Cave::V60b2:
+      return Idx(1, 4);
+    case Cave::V60c1:
+      return Idx(3, 4);
+    case Cave::V60c2:
+      return Idx(3, 3);
+    case Cave::V60d1:
+      return Idx(0, 4);
+    case Cave::V60d2:
+      return Idx(0, 3);
 
-  case Cave::H30a1:
-    return Idx(2, 5);
-  case Cave::H30a2:
-    return Idx(3, 5);
-  case Cave::H30b1:
-    return Idx(7, 5);
-  case Cave::H30b2:
-    return Idx(6, 5);
-  case Cave::H30c1:
-    return Idx(1, 5);
-  case Cave::H30c2:
-    return Idx(0, 5);
-  case Cave::H30d1:
-    return Idx(4, 5);
-  case Cave::H30d2:
-    return Idx(5, 5);
+    case Cave::H30a1:
+      return Idx(2, 5);
+    case Cave::H30a2:
+      return Idx(3, 5);
+    case Cave::H30b1:
+      return Idx(7, 5);
+    case Cave::H30b2:
+      return Idx(6, 5);
+    case Cave::H30c1:
+      return Idx(1, 5);
+    case Cave::H30c2:
+      return Idx(0, 5);
+    case Cave::H30d1:
+      return Idx(4, 5);
+    case Cave::H30d2:
+      return Idx(5, 5);
 
-  case Cave::END_N:
-    return Idx(4, 6);
-  case Cave::END_S:
-    return Idx(6, 6);
-  case Cave::END_E:
-    return Idx(5, 6);
-  case Cave::END_W:
-    return Idx(7, 6);
+    case Cave::END_N:
+      return Idx(4, 6);
+    case Cave::END_S:
+      return Idx(6, 6);
+    case Cave::END_E:
+      return Idx(5, 6);
+    case Cave::END_W:
+      return Idx(7, 6);
 
-  case Cave::SINGLE:
-    return Idx(4, 7);
+    case Cave::DEND_N:
+      return Idx(4, 7);
+    case Cave::DEND_S:
+      return Idx(6, 7);
+    case Cave::DEND_E:
+      return Idx(5, 7);
+    case Cave::DEND_W:
+      return Idx(7, 7);
 
-  default:
-    return Idx(0, 7); // Default to FLOOR
+    case Cave::SINGLE:
+      return Idx(3, 7);
+
+    default:
+      return Idx(0, 7);  // Default to FLOOR
   }
 }
 
-} // namespace
+}  // namespace
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -147,25 +156,26 @@ CuteCave& CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
 
 ///////////////////////////////////////////////////////////////////////
 
-CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
+CuteCave::TileAtlas CuteCave::loadTileAtlas(const char* virtual_path,
                                             int tile_size) {
   TileAtlas atlas = {};
 
   // 1. Load raw image dimensions
   int w, h;
-  void *data = NULL;
+  void* data = NULL;
   size_t sz = 0;
 
   data = Cute::fs_read_entire_file_to_memory(virtual_path, &sz);
-  CF_ASSERT(data && "Failed to read tile image. Ensure 'tiles_64x64.png' is in "
-                    "the assets folder.");
+  CF_ASSERT(data &&
+            "Failed to read tile image. Ensure 'tiles_64x64.png' is in "
+            "the assets folder.");
 
   // Just get width/height, don't decode pixels yet
   Cute::image_load_png_wh(data, (int)sz, &w, &h);
   cf_free(data);
 
-  atlas.width_in_tiles = w / tile_size; // Should be 512 / 64 = 8
-  int height_in_tiles = h / tile_size;  // Should be 512 / 64 = 8
+  atlas.width_in_tiles = w / tile_size;  // Should be 512 / 64 = 8
+  int height_in_tiles = h / tile_size;   // Should be 512 / 64 = 8
   int sub_image_count = atlas.width_in_tiles * height_in_tiles;
 
   LOG_ASSERT((atlas.width_in_tiles == 8) && (height_in_tiles == 8),
@@ -179,7 +189,7 @@ CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
   std::vector<CF_AtlasSubImage> sub_images(sub_image_count);
 
   for (int i = 0; i < sub_image_count; ++i) {
-    CF_AtlasSubImage &sub = sub_images[i];
+    CF_AtlasSubImage& sub = sub_images[i];
     int x = i % atlas.width_in_tiles;
     int y = i / atlas.width_in_tiles;
 
@@ -222,4 +232,4 @@ const Cave::TileMap CuteCave::make_cave(int seed) {
   return cave.generate();
 }
 
-} // namespace CuteCave
+}  // namespace CuteCave

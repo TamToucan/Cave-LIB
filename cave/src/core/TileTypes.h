@@ -34,6 +34,10 @@ enum TileName {
   END_S,
   END_E,
   END_W,
+  DEND_N,
+  DEND_S,
+  DEND_E,
+  DEND_W,
 
   // Generic wall, input to the smoother.
   WALL,
@@ -43,10 +47,10 @@ enum TileName {
   FLOOR,
   TILE_COUNT,
 
-  SMOOTHED, // NOTE: No sprite created for these
+  SMOOTHED,  // NOTE: No sprite created for these
   IGNORE
 };
 
-} // namespace Cave
+}  // namespace Cave
 
 #endif
