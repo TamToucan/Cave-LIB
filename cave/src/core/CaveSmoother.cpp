@@ -15,7 +15,6 @@
 #include "Debug.h"
 #include "TileTypes.h"
 
-
 namespace Cave {
 
 //
@@ -302,6 +301,12 @@ void createUpdateInfos() {
             l_value |= 0 << s;
             l_xOff2 = c;
             l_yOff2 = r;
+            break;
+          case O:
+            l_mask |= 1 << s;
+            l_value |= 0 << s;
+            l_xOff1 = c;
+            l_yOff1 = r;
             break;
           default:
             break;
