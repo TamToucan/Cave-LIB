@@ -7,8 +7,8 @@
 namespace Cave {
 
 class CaveSmoother {
-  void smoothEdges();
-  void smoothCorners();
+  void smoothEdges(std::vector<std::vector<int>>& smoothedGrid);
+  void smoothCorners(std::vector<std::vector<int>>& smoothedGrid);
 
  public:
   CaveSmoother(TileMap& tm, const CaveInfo& i);

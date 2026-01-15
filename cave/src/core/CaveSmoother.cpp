@@ -172,7 +172,7 @@ unsigned char TileGridDEs[GRD_H][GRD_W] = {
 unsigned char TileGridDEw[GRD_H][GRD_W] = {
     {X, S, X, X}, {S, O, B, X}, {X, S, X, X}, {X, X, X, X}};
 unsigned char TileGridDEn[GRD_H][GRD_W] = {
-    {X, S, X, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
+    {X, X, X, X}, {X, S, X, X}, {S, O, S, X}, {X, B, X, X}};
 
 //
 // Corner updates (1 corner rounded)
@@ -370,8 +370,11 @@ CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
 CaveSmoother::~CaveSmoother() {}
 
 void CaveSmoother::smooth() {
-  smoothEdges();
-  smoothCorners();
+  std::vector<std::vector<int>> smoothedGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
+  smoothEdges(smoothedGrid);
+  smoothCorners(smoothedGrid);
 }
 
 //
@@ -379,16 +382,13 @@ void CaveSmoother::smooth() {
 // and find any matching update(s). For each match set the TileMapLayer
 // cell(s) for the 1 or 2 tiles for each update.
 //
-void CaveSmoother::smoothEdges() {
+void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
   // right and bottom edges to be a border
   //
   LOG_INFO("====================== SMOOTH EDGES");
-  std::vector<std::vector<int>> smoothedGrid(
-      info.mCaveHeight + GRD_H + 1,
-      std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
   std::vector<std::vector<int>> inGrid(
       info.mCaveHeight + GRD_H + 1,
       std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
@@ -399,10 +399,7 @@ void CaveSmoother::smoothEdges() {
   //
   for (int y = 0; y < info.mCaveHeight; y++) {
     for (int x = 0; x < info.mCaveWidth; x++) {
-      // inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
-      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y)    ? SOLID
-                             : Cave::isFloor(tileMap, x, y) ? FLOOR
-                                                            : IGNORE;
+      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
     }
   }
   //
@@ -422,8 +419,7 @@ void CaveSmoother::smoothEdges() {
           --shift;
         }
       }
-      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value
-                          << std::dec);
+      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value << std::dec);
 
       // Find the matching update(s) for that value
       //
@@ -470,16 +466,13 @@ void CaveSmoother::smoothEdges() {
   }
 }
 
-void CaveSmoother::smoothCorners() {
+void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
   // right and bottom edges to be a border
   //
   LOG_INFO("====================== SMOOTH CORNERS");
-  std::vector<std::vector<int>> smoothedGrid(
-      info.mCaveHeight + GRD_H + 1,
-      std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
   std::vector<std::vector<int>> inGrid(
       info.mCaveHeight + GRD_H + 1,
       std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
@@ -490,8 +483,11 @@ void CaveSmoother::smoothCorners() {
   //
   for (int y = 0; y < info.mCaveHeight; y++) {
     for (int x = 0; x < info.mCaveWidth; x++) {
-      // We only care about walls and floors for corners
-      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y)    ? SOLID
+      // Walls and End caps can make right angle corners we want to round
+      // Thought I could do something clever with IGNORE vs FLOOR, but all
+      // the smoothed tiles are treated as not set, hence I pass in the smoothedGrid
+      bool isWall = Cave::isWall(tileMap, x, y) || Cave::isTile(tileMap, x, y, END_N) || Cave::isTile(tileMap, x, y, END_S) || Cave::isTile(tileMap, x, y, END_E) || Cave::isTile(tileMap, x, y, END_W);
+      inGrid[y + 1][x + 1] = isWall                         ? SOLID
                              : Cave::isFloor(tileMap, x, y) ? FLOOR
                                                             : IGNORE;
     }
