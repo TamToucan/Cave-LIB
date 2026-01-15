@@ -8,7 +8,6 @@
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-
 namespace {
 
 int getAtlasIndex(Cave::TileName tile) {
@@ -76,12 +75,21 @@ int getAtlasIndex(Cave::TileName tile) {
 
     case Cave::DEND_N:
       return Idx(4, 7);
-    case Cave::DEND_S:
-      return Idx(6, 7);
     case Cave::DEND_E:
       return Idx(5, 7);
+    case Cave::DEND_S:
+      return Idx(6, 7);
     case Cave::DEND_W:
       return Idx(7, 7);
+
+    case Cave::CORNR_A:
+      return Idx(4, 4);
+    case Cave::CORNR_B:
+      return Idx(5, 4);
+    case Cave::CORNR_C:
+      return Idx(6, 4);
+    case Cave::CORNR_D:
+      return Idx(7, 4);
 
     case Cave::SINGLE:
       return Idx(3, 7);

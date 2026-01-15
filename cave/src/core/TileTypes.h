@@ -38,6 +38,10 @@ enum TileName {
   DEND_S,
   DEND_E,
   DEND_W,
+  CORNR_A,
+  CORNR_B,
+  CORNR_C,
+  CORNR_D,
 
   // Generic wall, input to the smoother.
   WALL,

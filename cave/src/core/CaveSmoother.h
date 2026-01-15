@@ -7,17 +7,20 @@
 namespace Cave {
 
 class CaveSmoother {
-public:
-  CaveSmoother(TileMap &tm, const CaveInfo &i);
+  void smoothEdges();
+  void smoothCorners();
+
+ public:
+  CaveSmoother(TileMap& tm, const CaveInfo& i);
   ~CaveSmoother();
 
-  void smoothEdges();
+  void smooth();
 
-private:
-  TileMap &tileMap;
-  const CaveInfo &info;
+ private:
+  TileMap& tileMap;
+  const CaveInfo& info;
 };
 
-} // namespace Cave
+}  // namespace Cave
 
 #endif

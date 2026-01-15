@@ -43,9 +43,9 @@ namespace {
 //   S = set
 //   N = loc of 1st tile to change
 //   M = loc of 2nd tile to change (of loc1 a one tile update)
-//   O = loc of 1st tile to change, but the tile is currently blank
+//   O = loc of 1st tile to change, but the tile is currently FLOOR
 //
-// YES. 'N' = pos1 and 'M' = pos2. Don't @ me!
+// YES. 'N'/'O' = pos1 and 'M' = pos2. Don't @ me!
 //
 // The UpdateInfo holds a pointer to the TileGrid and the two tiles to replace
 // the 'N' and 'M' with. The updates is then a list of all the updates
@@ -126,18 +126,6 @@ unsigned char TileGridNDe[GRD_H][GRD_W] = {
 unsigned char TileGridNDs[GRD_H][GRD_W] = {
     {S, S, S, X}, {B, N, B, X}, {X, B, X, X}, {X, X, X, X}};
 //
-// Dead-Endtile updates
-// - East, South, West, North
-//
-unsigned char TileGridDEe[GRD_H][GRD_W] = {
-    {X, X, S, S}, {X, B, O, S}, {X, X, S, S}, {X, X, X, X}};
-unsigned char TileGridDEs[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, B, X, X}, {S, O, S, X}, {S, S, S, X}};
-unsigned char TileGridDEw[GRD_H][GRD_W] = {
-    {S, S, X, X}, {S, O, B, X}, {S, S, X, X}, {X, X, X, X}};
-unsigned char TileGridDEn[GRD_H][GRD_W] = {
-    {S, S, S, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
-//
 // Single isolated tile update
 //
 unsigned char TileGridNGL[GRD_H][GRD_W] = {
@@ -173,6 +161,31 @@ unsigned char TileGrid27n[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, B, B, X}, {B, N, S, X}, {X, B, S, X}};
 unsigned char TileGrid28n[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, B, X, X}, {B, N, B, X}, {S, S, B, X}};
+//
+// Dead-End updates (both corners rounded)
+// - East, South, West, North
+//
+unsigned char TileGridDEe[GRD_H][GRD_W] = {
+    {X, X, S, S}, {X, B, O, S}, {X, X, S, S}, {X, X, X, X}};
+unsigned char TileGridDEs[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, B, X, X}, {S, O, S, X}, {X, S, X, X}};
+unsigned char TileGridDEw[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, B, X}, {X, S, X, X}, {X, X, X, X}};
+unsigned char TileGridDEn[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
+
+//
+// Corner updates (1 corner rounded)
+// - Corner A, B, C, D
+//
+unsigned char TileGridCRa[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, X, X}, {X, B, X, X}, {X, X, X, X}};
+unsigned char TileGridCRb[GRD_H][GRD_W] = {
+    {X, X, S, X}, {X, X, O, S}, {X, X, B, X}, {X, X, X, X}};
+unsigned char TileGridCRc[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, X, X, X}, {X, B, O, S}, {X, X, S, X}};
+unsigned char TileGridCRd[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, X, X, X}, {S, O, B, X}, {X, S, X, X}};
 
 ///////////////////////////////////////////
 
@@ -242,11 +255,6 @@ UpdateInfo updates[] = {
     {TileGrid2Ds, 0, 0, 0, 0, 0, 0, END_S, IGNORE},
     {TileGrid2De, 0, 0, 0, 0, 0, 0, END_E, IGNORE},
     {TileGrid2Dw, 0, 0, 0, 0, 0, 0, END_W, IGNORE},
-    // dead-ends
-    {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
-    {TileGridDEs, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
-    {TileGridDEe, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
-    {TileGridDEw, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
 #if 0
     // Bit sticking off end
     { TileGrid21n,  0, 0, 0,0, 0,0, FLOOR, IGNORE},
@@ -260,13 +268,26 @@ UpdateInfo updates[] = {
     { TileGrid28n,  0, 0, 0,0, 0,0, FLOOR, IGNORE}
 #endif
 };
+UpdateInfo cornerUpdates[] = {
+    // dead-ends (round both corners)
+    {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
+    {TileGridDEs, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
+    {TileGridDEe, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
+    {TileGridDEw, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
+    // corners (round a single corner)
+    {TileGridCRa, 0, 0, 0, 0, 0, 0, CORNR_A, IGNORE},
+    {TileGridCRb, 0, 0, 0, 0, 0, 0, CORNR_B, IGNORE},
+    {TileGridCRc, 0, 0, 0, 0, 0, 0, CORNR_C, IGNORE},
+    {TileGridCRd, 0, 0, 0, 0, 0, 0, CORNR_D, IGNORE},
+};
 
 //
 // Use the patterns to calc and modify the updates with mask,value and offsets
 //
-void createUpdateInfos() {
+template <size_t SZ>
+void createUpdateInfos(UpdateInfo (&updateInfos)[SZ]) {
   LOG_INFO("====================== SMOOTH CREATE UPDATES");
-  for (auto& u : updates) {
+  for (auto& u : updateInfos) {
     const unsigned char (*grid)[GRD_W] = u.pattern;
     int l_mask = 0;
     int l_value = 0;
@@ -309,6 +330,7 @@ void createUpdateInfos() {
             l_yOff1 = r;
             break;
           default:
+            LOG_ABORT("Invalid tile: " << grid[r][c] << " at " << r << "," << c);
             break;
         }
         --s;
@@ -331,6 +353,11 @@ void createUpdateInfos() {
   }
 }
 
+void createUpdateInfos() {
+  createUpdateInfos(updates);
+  createUpdateInfos(cornerUpdates);
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////
@@ -341,6 +368,11 @@ CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
 }
 
 CaveSmoother::~CaveSmoother() {}
+
+void CaveSmoother::smooth() {
+  smoothEdges();
+  smoothCorners();
+}
 
 //
 // Copy the input, create a 4x4 grid value for each pos (bit set = wall)
@@ -367,7 +399,10 @@ void CaveSmoother::smoothEdges() {
   //
   for (int y = 0; y < info.mCaveHeight; y++) {
     for (int x = 0; x < info.mCaveWidth; x++) {
-      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
+      // inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
+      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y)    ? SOLID
+                             : Cave::isFloor(tileMap, x, y) ? FLOOR
+                                                            : IGNORE;
     }
   }
   //
@@ -392,33 +427,98 @@ void CaveSmoother::smoothEdges() {
 
       // Find the matching update(s) for that value
       //
-#if 0
-            for (const auto& up : updates) {
-                if ( (value&up.mask) == up.value) {
-					Vector2i pos1{x+ up.xoff1, y+ up.yoff1};
-					Vector2i pos2{x+ up.xoff2, y+ up.yoff2};
-                	// Ensure not smoothed it already
-                	// - can check both pos since p2 == p1 if no 2nd tile
-                	if ((smoothedGrid[pos1.y][pos1.x] == IGNORE)
-                	 && (smoothedGrid[pos2.y][pos2.x] == IGNORE)) {
-                		// Smooth the first (N) tile
-                		// - Need to translate the grid pos back to cave pos
-						LOG_INFO("SMOOTH " << x << "," << y << " " << up.t1 << "," << up.t2);
-						Cave::setCell(tileMap, pos1.x-1,pos1.y-1, up.t1);
-                		smoothedGrid[pos1.y][pos1.x] = SMOOTHED;
-                		// Check if there is a second (M) tile
-                		if (up.t2 != IGNORE) {
-                			// Smooth the second (M) tile
-                			// - Need to translate the grid pos back to cave pos
-							Cave::setCell(tileMap, pos2.x-1,pos2.y-1, up.t2);
-                			smoothedGrid[pos2.y][pos2.x] = SMOOTHED;
-                		}
-                	}
-                }
-            }
-#else
       int idx = 0;
       for (const auto& up : updates) {
+        LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
+                               << " val:" << up.value << " inVal:" << value
+                               << " and:" << (value & up.mask) << std::dec);
+        if ((value & up.mask) == up.value) {
+          Vector2i pos1{x + up.xoff1, y + up.yoff1};
+          Vector2i pos2{x + up.xoff2, y + up.yoff2};
+
+          LOG_DEBUG("      FOUND1 up:" << idx << " p1:" << pos1.x << ","
+                                       << pos1.y << " p2:" << pos2.x << ","
+                                       << pos2.y);
+          // Ensure not smoothed it already
+          // - can check both pos since p2 == p1 if no 2nd tile
+          if ((smoothedGrid[pos1.y][pos1.x] == IGNORE) &&
+              (smoothedGrid[pos2.y][pos2.x] == IGNORE)) {
+            LOG_DEBUG("         SMOOTH1 -> " << up.t1);
+            // Smooth the first (N) tile
+            // - Need to translate the grid pos back to cave pos
+            Cave::setCell(tileMap, pos1.x - 1, pos1.y - 1, up.t1);
+            smoothedGrid[pos1.y][pos1.x] = SMOOTHED;
+            // Check if there is a second (M) tile
+            if (up.t2 != IGNORE) {
+              LOG_DEBUG("      FOUND2 " << pos2.x << "," << pos2.y);
+              LOG_DEBUG("         SMOOTH2 -> " << up.t2);
+              // Smooth the second (M) tile
+              // - Need to translate the grid pos back to cave pos
+              Cave::setCell(tileMap, pos2.x - 1, pos2.y - 1, up.t2);
+              smoothedGrid[pos2.y][pos2.x] = SMOOTHED;
+            } else {
+              LOG_DEBUG("  IGNORE TILE2: " << pos2.x << "," << pos2.y);
+            }
+          } else {
+            LOG_DEBUG("  IGNORE p1:" << smoothedGrid[pos1.y][pos1.x]
+                                     << " p2:" << smoothedGrid[pos2.y][pos2.x]);
+          }
+        }
+        ++idx;
+      }
+    }
+  }
+}
+
+void CaveSmoother::smoothCorners() {
+  //
+  // NOTE: So we can do a 4x4 with the top and left edge being the border
+  // we shift the maze 0,0 to 1,1. We also make it wider to allow the
+  // right and bottom edges to be a border
+  //
+  LOG_INFO("====================== SMOOTH CORNERS");
+  std::vector<std::vector<int>> smoothedGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
+  std::vector<std::vector<int>> inGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
+
+  //
+  // Copy the current cave
+  // NOTE: Translate the cave 0,0 => 1,1 of grids
+  //
+  for (int y = 0; y < info.mCaveHeight; y++) {
+    for (int x = 0; x < info.mCaveWidth; x++) {
+      // We only care about walls and floors for corners
+      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y)    ? SOLID
+                             : Cave::isFloor(tileMap, x, y) ? FLOOR
+                                                            : IGNORE;
+    }
+  }
+  //
+  // Smooth the grid
+  //
+  for (int y = 0; y < info.mCaveHeight - 1; y++) {
+    for (int x = 0; x < info.mCaveWidth - 1; x++) {
+      // Get the value of the 4x4 grid
+      LOG_DEBUG("==MASK value " << x << "," << y);
+      int value = 0;
+      int shift = (GRD_H * GRD_W) - 1;
+      for (int r = 0; r < GRD_H; ++r) {
+        for (int c = 0; c < GRD_W; ++c) {
+          if (inGrid[y + r][x + c] == SOLID) {
+            value |= (1 << shift);
+          }
+          --shift;
+        }
+      }
+      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value << std::dec);
+
+      // Find the matching update(s) for that value
+      //
+      int idx = 0;
+      for (const auto& up : cornerUpdates) {
         LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
                                << " val:" << up.value << " inVal:" << value
                                << " and:" << (value & up.mask) << std::dec);
@@ -456,7 +556,6 @@ void CaveSmoother::smoothEdges() {
         }
         ++idx;
       }
-#endif
     }
   }
 }

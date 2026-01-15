@@ -1,9 +1,11 @@
+#include "Cave.h"
+
 #include <algorithm>
 #include <cmath>
 #include <set>
 
-#include "Cave.h"
 #include "CaveSmoother.h"
+#include "Debug.h"
 #include "DisjointSets.h"
 #include "PerlinNoise.h"
 #include "RandSimple.h"
@@ -11,11 +13,10 @@
 #include "SimplexNoise.h"
 #include "TileTypes.h"
 
-#include "Debug.h"
 
 namespace Cave {
 
-Cave::Cave(CaveInfo &info, const GenerationParams &params)
+Cave::Cave(CaveInfo& info, const GenerationParams& params)
     : mInfo(info), mParams(params) {}
 
 Cave::~Cave() {}
@@ -39,7 +40,7 @@ TileMap Cave::generate() {
   return tileMap;
 }
 
-void Cave::initialise(TileMap &tileMap) {
+void Cave::initialise(TileMap& tileMap) {
   RNG::RandSimple simple(mParams.seed);
 
   //
@@ -75,12 +76,11 @@ void Cave::initialise(TileMap &tileMap) {
   }
 }
 
-void Cave::runCellularAutomata(TileMap &tileMap) {
+void Cave::runCellularAutomata(TileMap& tileMap) {
   if (!mParams.mGenerations.empty()) {
-
     // initialise the RogueCave grid from the TileMap
     PCG::RogueCave cave(mInfo.mCaveWidth, mInfo.mCaveHeight);
-    std::vector<std::vector<int>> &gridIn = cave.getGrid();
+    std::vector<std::vector<int>>& gridIn = cave.getGrid();
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
         gridIn[cy][cx] = Cave::isWall(tileMap, cx, cy)
@@ -93,14 +93,14 @@ void Cave::runCellularAutomata(TileMap &tileMap) {
     }
 
     // run the cellular automata
-    for (const auto &gen : mParams.mGenerations) {
+    for (const auto& gen : mParams.mGenerations) {
       Util::IntRange b3(gen.b3_min, gen.b3_max);
       Util::IntRange b5(gen.b5_min, gen.b5_max);
       Util::IntRange s3(gen.s3_min, gen.s3_max);
       Util::IntRange s5(gen.s5_min, gen.s5_max);
       cave.addGeneration(b3, b5, s3, s5, gen.reps);
     }
-    std::vector<std::vector<int>> &gridOut = cave.generate();
+    std::vector<std::vector<int>>& gridOut = cave.generate();
 
     // Copy the RogueCave grid back to the TileMap
     LOG_DEBUG("-----GRID OUT-----");
@@ -117,7 +117,7 @@ void Cave::runCellularAutomata(TileMap &tileMap) {
   }
 }
 
-void Cave::fixUp(TileMap &tileMap) {
+void Cave::fixUp(TileMap& tileMap) {
   std::vector<Vector2i> walls;
   std::vector<Vector2i> floors;
   for (int lp = 0; lp < 10; ++lp) {
@@ -179,7 +179,7 @@ void Cave::fixUp(TileMap &tileMap) {
 }
 
 std::pair<Vector2iIntMap, IntVectorOfVector2iMap>
-Cave::findRooms(TileMap &tileMap) {
+Cave::findRooms(TileMap& tileMap) {
   Algo::DisjointSets<Vector2i> floors;
   static const std::vector<Vector2i> directions = {
       {0, 1}, {1, 0}, {0, -1}, {-1, 0}};
@@ -197,7 +197,7 @@ Cave::findRooms(TileMap &tileMap) {
   for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       if (isFloor(tileMap, cx, cy)) {
-        for (const Vector2i &dir : directions) {
+        for (const Vector2i& dir : directions) {
           int nx = cx + dir.x;
           int ny = cy + dir.y;
           if ((nx >= 0 && nx < mInfo.mCaveWidth) &&
@@ -234,7 +234,7 @@ Cave::findRooms(TileMap &tileMap) {
 }
 
 void Cave::joinRooms(
-    TileMap &tileMap,
+    TileMap& tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
   std::vector<Cave::BorderWall> borderWalls =
       detectBorderWalls(tileMap, floorMaps);
@@ -253,7 +253,7 @@ void Cave::joinRooms(
     roomIds.push_back(p.first);
   }
   std::vector<Cave::BorderWall> mst = findMST_Kruskal(borderWalls, roomIds);
-  for (auto &node : mst) {
+  for (auto& node : mst) {
     int wx = node.floor1.x + node.dir.x;
     int wy = node.floor1.y + node.dir.y;
     LOG_DEBUG_CONT("TUNNEL: " << wx << "," << wy << " dir: " << node.dir.x
@@ -284,7 +284,7 @@ void Cave::joinRooms(
 }
 
 std::vector<Cave::BorderWall> Cave::detectBorderWalls(
-    TileMap &tileMap,
+    TileMap& tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
   std::vector<BorderWall> borderWalls;
   Vector2iIntMap floorToRoomMap = floorMaps.first;
@@ -292,9 +292,9 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
 
   LOG_DEBUG("----DETECT BORDER WALLS----");
   LOG_DEBUG("ROOMS: " << roomsMap.size());
-  for (const auto &[roomID, tiles] : roomsMap) {
+  for (const auto& [roomID, tiles] : roomsMap) {
     LOG_DEBUG_CONT("Tiles: " << tiles.size());
-    for (const auto &tile : tiles) {
+    for (const auto& tile : tiles) {
       LOG_DEBUG_CONT(" " << tile.x << "," << tile.y);
     }
     LOG_DEBUG(" ID: " << roomID);
@@ -322,16 +322,16 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
   // non-deterministic wall detection order.
   std::vector<int> sortedRoomIds;
   sortedRoomIds.reserve(roomsMap.size());
-  for (const auto &pair : roomsMap) {
+  for (const auto& pair : roomsMap) {
     sortedRoomIds.push_back(pair.first);
   }
   std::sort(sortedRoomIds.begin(), sortedRoomIds.end());
 
   for (int roomID : sortedRoomIds) {
-    const auto &tiles = roomsMap[roomID];
+    const auto& tiles = roomsMap[roomID];
     checkedRooms.push_back(roomID);
-    for (const auto &tile : tiles) {
-      for (const auto &dir :
+    for (const auto& tile : tiles) {
+      for (const auto& dir :
            {Vector2i{-1, 0}, Vector2i{1, 0}, Vector2i{0, -1}, Vector2i{0, 1}}) {
         int cx = tile.x + dir.x;
         int cy = tile.y + dir.y;
@@ -385,7 +385,7 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
 }
 
 std::vector<Cave::BorderWall>
-Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
+Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
                       std::vector<int> roomIds) {
   std::vector<BorderWall> mst;
   Algo::DisjointSets<int> dsu;
@@ -398,7 +398,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
   // FIX: Use a fully deterministic comparator.
   // Previous comparator only used thickness, which is not unique.
   std::sort(borderWalls.begin(), borderWalls.end(),
-            [](const BorderWall &a, const BorderWall &b) {
+            [](const BorderWall& a, const BorderWall& b) {
               if (a.thickness != b.thickness)
                 return a.thickness < b.thickness;
               if (a.room1 != b.room1)
@@ -415,7 +415,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
             });
   LOG_INFO("=== findMST: " << borderWalls.size() << " rooms: " << numRooms);
 
-  for (const BorderWall &wall : borderWalls) {
+  for (const BorderWall& wall : borderWalls) {
     int setU = dsu.findSet(wall.room1);
     int setV = dsu.findSet(wall.room2);
     if (setU != setV) {
@@ -428,7 +428,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
   }
 
   LOG_INFO("DONE MST: " << mst.size());
-  for (auto &node : mst) {
+  for (auto& node : mst) {
     LOG_DEBUG("BORDER: r1 = " << node.room1 << " r2 = " << node.room2
                               << " thick = " << node.thickness
                               << " wall=" << node.dir.x << "," << node.dir.y);
@@ -436,12 +436,12 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
   return mst;
 }
 
-void Cave::smooth(TileMap &tileMap) {
+void Cave::smooth(TileMap& tileMap) {
   CaveSmoother smoother(tileMap, mInfo);
-  smoother.smoothEdges();
+  smoother.smooth();
 }
 
-bool Cave::isTile(const TileMap &tileMap, int cx, int cy, int tile) {
+bool Cave::isTile(const TileMap& tileMap, int cx, int cy, int tile) {
   Vector2i mapPos = getMapPos(cx, cy);
   if (mapPos.x >= 0 && mapPos.x < tileMap.size() && mapPos.y >= 0 &&
       mapPos.y < tileMap[0].size()) {
@@ -452,9 +452,9 @@ bool Cave::isTile(const TileMap &tileMap, int cx, int cy, int tile) {
 
 Vector2i Cave::getMapPos(int cx, int cy) { return {1 + cx, 1 + cy}; }
 
-void Cave::setCell(TileMap &tileMap, int x, int y, int tile) {
+void Cave::setCell(TileMap& tileMap, int x, int y, int tile) {
   Vector2i mapPos = getMapPos(x, y);
   tileMap[mapPos.y][mapPos.x] = tile;
 }
 
-} // namespace Cave
+}  // namespace Cave
