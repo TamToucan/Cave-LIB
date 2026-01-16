@@ -1,14 +1,25 @@
 #ifndef CAVE_SMOOTHER_H
 #define CAVE_SMOOTHER_H
 
+#include <cstddef>
+#include <vector>
+
 #include "CaveInfo.h"
 #include "TileTypes.h"
 
+
 namespace Cave {
+
+struct UpdateInfo;
 
 class CaveSmoother {
   void smoothEdges(std::vector<std::vector<int>>& smoothedGrid);
   void smoothCorners(std::vector<std::vector<int>>& smoothedGrid);
+  void smoothPoints(std::vector<std::vector<int>>& smoothedGrid);
+  template <size_t SZ>
+  void smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
+                     std::vector<std::vector<int>>& inGrid,
+                     std::vector<std::vector<int>>& smoothedGrid);
 
  public:
   CaveSmoother(TileMap& tm, const CaveInfo& i);

@@ -43,6 +43,30 @@ enum TileName {
   CORNR_C,
   CORNR_D,
 
+  T45a2CT,
+  T45b2CT,
+  T45c2CT,
+  T45d2CT,
+
+  T45abCT,
+  T45adCT,
+  T45baCT,
+  T45bcCT,
+  T45cbCT,
+  T45ccdT,
+  T45daCT,
+  T45dcCT,
+
+  V60aCT,
+  V60bCT,
+  V60cCT,
+  V60dCT,
+
+  H30aCT,
+  H30bCT,
+  H30cCT,
+  H30dCT,
+
   // Generic wall, input to the smoother.
   WALL,
 

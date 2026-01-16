@@ -94,6 +94,50 @@ int getAtlasIndex(Cave::TileName tile) {
     case Cave::SINGLE:
       return Idx(3, 7);
 
+    case Cave::T45a2CT:
+      return Idx(2, 0);
+    case Cave::T45b2CT:
+      return Idx(3, 0);
+    case Cave::T45c2CT:
+      return Idx(3, 1);
+    case Cave::T45d2CT:
+      return Idx(2, 1);
+
+    case Cave::T45abCT:
+      return Idx(4, 2);
+    case Cave::T45adCT:
+      return Idx(4, 1);
+    case Cave::T45baCT:
+      return Idx(5, 2);
+    case Cave::T45bcCT:
+      return Idx(5, 1);
+    case Cave::T45cbCT:
+      return Idx(6, 1);
+    case Cave::T45ccdT:
+      return Idx(6, 2);
+    case Cave::T45daCT:
+      return Idx(7, 1);
+    case Cave::T45dcCT:
+      return Idx(7, 2);
+
+    case Cave::V60aCT:
+      return Idx(1, 2);
+    case Cave::V60bCT:
+      return Idx(0, 2);
+    case Cave::V60cCT:
+      return Idx(2, 2);
+    case Cave::V60dCT:
+      return Idx(3, 2);
+
+    case Cave::H30aCT:
+      return Idx(0, 1);
+    case Cave::H30bCT:
+      return Idx(1, 1);
+    case Cave::H30cCT:
+      return Idx(1, 0);
+    case Cave::H30dCT:
+      return Idx(0, 0);
+
     default:
       return Idx(0, 7);  // Default to FLOOR
   }

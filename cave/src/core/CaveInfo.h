@@ -7,11 +7,11 @@ struct Vector2i {
   int x = 0;
   int y = 0;
 
-  bool operator==(const Vector2i &other) const {
+  bool operator==(const Vector2i& other) const {
     return x == other.x && y == other.y;
   }
 
-  bool operator<(const Vector2i &other) const {
+  bool operator<(const Vector2i& other) const {
     if (x < other.x)
       return true;
     if (x > other.x)
@@ -21,6 +21,8 @@ struct Vector2i {
 };
 
 struct CaveInfo {
+  bool mSmoothCorners = true;
+  bool mSmoothPoints = true;
   int mCaveWidth = 2;
   int mCaveHeight = 2;
   int mBorderWidth = 1;
@@ -32,6 +34,6 @@ struct CaveInfo {
   int mLayer = 0;
 };
 
-} // namespace Cave
+}  // namespace Cave
 
 #endif

@@ -13,7 +13,6 @@
 #include "SimplexNoise.h"
 #include "TileTypes.h"
 
-
 namespace Cave {
 
 Cave::Cave(CaveInfo& info, const GenerationParams& params)
@@ -441,13 +440,13 @@ void Cave::smooth(TileMap& tileMap) {
   smoother.smooth();
 }
 
-bool Cave::isTile(const TileMap& tileMap, int cx, int cy, int tile) {
+TileName Cave::getTile(const TileMap& tileMap, int cx, int cy) {
   Vector2i mapPos = getMapPos(cx, cy);
   if (mapPos.x >= 0 && mapPos.x < tileMap.size() && mapPos.y >= 0 &&
       mapPos.y < tileMap[0].size()) {
-    return tileMap[mapPos.y][mapPos.x] == tile;
+    return static_cast<TileName>(tileMap[mapPos.y][mapPos.x]);
   }
-  return false;
+  return IGNORE;
 }
 
 Vector2i Cave::getMapPos(int cx, int cy) { return {1 + cx, 1 + cy}; }

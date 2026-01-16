@@ -35,7 +35,7 @@ namespace Cave {
 // 0001111  => T60_HZ_3 (since 3 is the "solid" corner)
 // 1111111
 //
-namespace {
+
 //
 // The TileGrid's are a 4x4 of tiles where
 //   X = don't care
@@ -268,6 +268,9 @@ UpdateInfo updates[] = {
     { TileGrid28n,  0, 0, 0,0, 0,0, FLOOR, IGNORE}
 #endif
 };
+//
+// For rounding anywhere there is a FLOOR with a 90 degree corner
+// e.g. a dead-end of a corridor
 UpdateInfo cornerUpdates[] = {
     // dead-ends (round both corners)
     {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
@@ -279,6 +282,86 @@ UpdateInfo cornerUpdates[] = {
     {TileGridCRb, 0, 0, 0, 0, 0, 0, CORNR_B, IGNORE},
     {TileGridCRc, 0, 0, 0, 0, 0, 0, CORNR_C, IGNORE},
     {TileGridCRd, 0, 0, 0, 0, 0, 0, CORNR_D, IGNORE},
+};
+
+//
+// For rounding anywhere there is a sharp point e.g.
+// two adjacent 45 degree slopes /\.
+typedef TileName TileName2x2[2][2];
+
+struct PointUpdate {
+  const TileName2x2* grids;
+  int numGrids;
+  int xoff1;
+  int yoff1;
+  TileName tile1;
+};
+
+template <size_t NUM>
+constexpr PointUpdate make_point_update(const TileName2x2 (&grids)[NUM],
+                                        int xoff1, int yoff1, TileName tile1) {
+  return {
+      grids,
+      static_cast<int>(NUM),
+      xoff1,
+      yoff1,
+      tile1};
+}
+
+static const TileName2x2 Grids_45a_2CUTS[] = {
+    {{IGNORE, T45d},
+     {T45b, T45a}},
+
+    {{IGNORE, H30d2},
+     {T45b, T45a}},
+
+    {{IGNORE, T45d},
+     {V60b2, T45a}},
+};
+
+static const TileName2x2 Grids_45b_2CUTS[] = {
+    {{T45c, IGNORE},
+     {T45b, T45a}},
+
+    {{H30c2, IGNORE},
+     {T45b, T45a}},
+
+    {{T45c, IGNORE},
+     {T45b, V60a2}},
+};
+
+static const TileName2x2 Grids_45c_2CUTS[] = {
+    {{T45c, T45d},
+     {T45b, IGNORE}},
+
+    {{T45c, T45d},
+     {H30b2, IGNORE}},
+
+    {{T45c, V60d2},
+     {T45b, IGNORE}},
+};
+
+static const TileName2x2 Grids_45d_2CUTS[] = {
+    {{T45c, T45d},
+     {IGNORE, T45a}},
+
+    {{V60c2, T45d},
+     {IGNORE, T45a}},
+
+    {{T45c, T45d},
+     {IGNORE, H30a2}},
+};
+
+static const PointUpdate Grid45a_2CUT = make_point_update(Grids_45a_2CUTS, 1, 1, T45a2CT);
+static const PointUpdate Grid45b_2CUT = make_point_update(Grids_45b_2CUTS, 0, 1, T45b2CT);
+static const PointUpdate Grid45c_2CUT = make_point_update(Grids_45c_2CUTS, 0, 0, T45c2CT);
+static const PointUpdate Grid45d_2CUT = make_point_update(Grids_45d_2CUTS, 1, 0, T45d2CT);
+
+static const PointUpdate pointUpdates[] = {
+    Grid45a_2CUT,
+    Grid45b_2CUT,
+    Grid45c_2CUT,
+    Grid45d_2CUT,
 };
 
 //
@@ -358,8 +441,6 @@ void createUpdateInfos() {
   createUpdateInfos(cornerUpdates);
 }
 
-}  // namespace
-
 //////////////////////////////////////////////////
 
 CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
@@ -373,35 +454,23 @@ void CaveSmoother::smooth() {
   std::vector<std::vector<int>> smoothedGrid(
       info.mCaveHeight + GRD_H + 1,
       std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
+
   smoothEdges(smoothedGrid);
-  smoothCorners(smoothedGrid);
+
+  if (info.mSmoothCorners) {
+    smoothCorners(smoothedGrid);
+  }
+  if (info.mSmoothPoints) {
+    smoothPoints(smoothedGrid);
+  }
 }
 
-//
-// Copy the input, create a 4x4 grid value for each pos (bit set = wall)
-// and find any matching update(s). For each match set the TileMapLayer
-// cell(s) for the 1 or 2 tiles for each update.
-//
-void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
-  //
-  // NOTE: So we can do a 4x4 with the top and left edge being the border
-  // we shift the maze 0,0 to 1,1. We also make it wider to allow the
-  // right and bottom edges to be a border
-  //
-  LOG_INFO("====================== SMOOTH EDGES");
-  std::vector<std::vector<int>> inGrid(
-      info.mCaveHeight + GRD_H + 1,
-      std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
+/////////////////////////////////////////////////////////////////////////////
 
-  //
-  // Copy the current cave
-  // NOTE: Translate the cave 0,0 => 1,1 of grids
-  //
-  for (int y = 0; y < info.mCaveHeight; y++) {
-    for (int x = 0; x < info.mCaveWidth; x++) {
-      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
-    }
-  }
+template <size_t SZ>
+void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
+                                 std::vector<std::vector<int>>& inGrid,
+                                 std::vector<std::vector<int>>& smoothedGrid) {
   //
   // Smooth the grid
   //
@@ -424,97 +493,7 @@ void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
       // Find the matching update(s) for that value
       //
       int idx = 0;
-      for (const auto& up : updates) {
-        LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
-                               << " val:" << up.value << " inVal:" << value
-                               << " and:" << (value & up.mask) << std::dec);
-        if ((value & up.mask) == up.value) {
-          Vector2i pos1{x + up.xoff1, y + up.yoff1};
-          Vector2i pos2{x + up.xoff2, y + up.yoff2};
-
-          LOG_DEBUG("      FOUND1 up:" << idx << " p1:" << pos1.x << ","
-                                       << pos1.y << " p2:" << pos2.x << ","
-                                       << pos2.y);
-          // Ensure not smoothed it already
-          // - can check both pos since p2 == p1 if no 2nd tile
-          if ((smoothedGrid[pos1.y][pos1.x] == IGNORE) &&
-              (smoothedGrid[pos2.y][pos2.x] == IGNORE)) {
-            LOG_DEBUG("         SMOOTH1 -> " << up.t1);
-            // Smooth the first (N) tile
-            // - Need to translate the grid pos back to cave pos
-            Cave::setCell(tileMap, pos1.x - 1, pos1.y - 1, up.t1);
-            smoothedGrid[pos1.y][pos1.x] = SMOOTHED;
-            // Check if there is a second (M) tile
-            if (up.t2 != IGNORE) {
-              LOG_DEBUG("      FOUND2 " << pos2.x << "," << pos2.y);
-              LOG_DEBUG("         SMOOTH2 -> " << up.t2);
-              // Smooth the second (M) tile
-              // - Need to translate the grid pos back to cave pos
-              Cave::setCell(tileMap, pos2.x - 1, pos2.y - 1, up.t2);
-              smoothedGrid[pos2.y][pos2.x] = SMOOTHED;
-            } else {
-              LOG_DEBUG("  IGNORE TILE2: " << pos2.x << "," << pos2.y);
-            }
-          } else {
-            LOG_DEBUG("  IGNORE p1:" << smoothedGrid[pos1.y][pos1.x]
-                                     << " p2:" << smoothedGrid[pos2.y][pos2.x]);
-          }
-        }
-        ++idx;
-      }
-    }
-  }
-}
-
-void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
-  //
-  // NOTE: So we can do a 4x4 with the top and left edge being the border
-  // we shift the maze 0,0 to 1,1. We also make it wider to allow the
-  // right and bottom edges to be a border
-  //
-  LOG_INFO("====================== SMOOTH CORNERS");
-  std::vector<std::vector<int>> inGrid(
-      info.mCaveHeight + GRD_H + 1,
-      std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
-
-  //
-  // Copy the current cave
-  // NOTE: Translate the cave 0,0 => 1,1 of grids
-  //
-  for (int y = 0; y < info.mCaveHeight; y++) {
-    for (int x = 0; x < info.mCaveWidth; x++) {
-      // Walls and End caps can make right angle corners we want to round
-      // Thought I could do something clever with IGNORE vs FLOOR, but all
-      // the smoothed tiles are treated as not set, hence I pass in the smoothedGrid
-      bool isWall = Cave::isWall(tileMap, x, y) || Cave::isTile(tileMap, x, y, END_N) || Cave::isTile(tileMap, x, y, END_S) || Cave::isTile(tileMap, x, y, END_E) || Cave::isTile(tileMap, x, y, END_W);
-      inGrid[y + 1][x + 1] = isWall                         ? SOLID
-                             : Cave::isFloor(tileMap, x, y) ? FLOOR
-                                                            : IGNORE;
-    }
-  }
-  //
-  // Smooth the grid
-  //
-  for (int y = 0; y < info.mCaveHeight - 1; y++) {
-    for (int x = 0; x < info.mCaveWidth - 1; x++) {
-      // Get the value of the 4x4 grid
-      LOG_DEBUG("==MASK value " << x << "," << y);
-      int value = 0;
-      int shift = (GRD_H * GRD_W) - 1;
-      for (int r = 0; r < GRD_H; ++r) {
-        for (int c = 0; c < GRD_W; ++c) {
-          if (inGrid[y + r][x + c] == SOLID) {
-            value |= (1 << shift);
-          }
-          --shift;
-        }
-      }
-      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value << std::dec);
-
-      // Find the matching update(s) for that value
-      //
-      int idx = 0;
-      for (const auto& up : cornerUpdates) {
+      for (const auto& up : updateInfos) {
         LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
                                << " val:" << up.value << " inVal:" << value
                                << " and:" << (value & up.mask) << std::dec);
@@ -551,6 +530,97 @@ void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
           }
         }
         ++idx;
+      }
+    }
+  }
+}
+/////////////////////////////////////////////////////////////////////////////
+
+//
+// Copy the input, create a 4x4 grid value for each pos (bit set = wall)
+// and find any matching update(s). For each match set the TileMapLayer
+// cell(s) for the 1 or 2 tiles for each update.
+//
+void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
+  //
+  // NOTE: So we can do a 4x4 with the top and left edge being the border
+  // we shift the maze 0,0 to 1,1. We also make it wider to allow the
+  // right and bottom edges to be a border
+  //
+  LOG_INFO("====================== SMOOTH EDGES");
+  //
+  // Copy the current cave
+  // NOTE: Translate the cave 0,0 => 1,1 of grids
+  //
+  std::vector<std::vector<int>> inGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
+
+  for (int y = 0; y < info.mCaveHeight; y++) {
+    for (int x = 0; x < info.mCaveWidth; x++) {
+      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
+    }
+  }
+  smoothTheGrid(updates, inGrid, smoothedGrid);
+}
+
+void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
+  //
+  // NOTE: So we can do a 4x4 with the top and left edge being the border
+  // we shift the maze 0,0 to 1,1. We also make it wider to allow the
+  // right and bottom edges to be a border
+  //
+  LOG_INFO("====================== SMOOTH CORNERS");
+  //
+  // Copy the current cave
+  // NOTE: Translate the cave 0,0 => 1,1 of grids
+  //
+  std::vector<std::vector<int>> inGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<int>(info.mCaveWidth + GRD_W + 1, SOLID));
+
+  for (int y = 0; y < info.mCaveHeight; y++) {
+    for (int x = 0; x < info.mCaveWidth; x++) {
+      // Walls and End caps can make right angle corners we want to round
+      // Thought I could do something clever with IGNORE vs FLOOR, but all
+      // the smoothed tiles are treated as not set, hence I pass in the smoothedGrid
+      bool isWall = Cave::isWall(tileMap, x, y) || Cave::isTile(tileMap, x, y, END_N) || Cave::isTile(tileMap, x, y, END_S) || Cave::isTile(tileMap, x, y, END_E) || Cave::isTile(tileMap, x, y, END_W);
+      inGrid[y + 1][x + 1] = isWall                         ? SOLID
+                             : Cave::isFloor(tileMap, x, y) ? FLOOR
+                                                            : IGNORE;
+    }
+  }
+  smoothTheGrid(cornerUpdates, inGrid, smoothedGrid);
+}
+
+void CaveSmoother::smoothPoints(std::vector<std::vector<int>>& smoothedGrid) {
+  LOG_INFO("====================== SMOOTH POINTS");
+  for (int y = 0; y < info.mCaveHeight - 1; y++) {
+    for (int x = 0; x < info.mCaveWidth - 1; x++) {
+      int idx = 0;
+      for (const auto& up : pointUpdates) {
+        if (smoothedGrid[y + up.yoff1][x + up.xoff1]) continue;
+
+        for (int i = 0; i < up.numGrids; ++i) {
+          bool match = true;
+
+          const auto* grid = up.grids[i];
+          for (int yo = 0; yo < 2 && match; ++yo) {
+            for (int xo = 0; xo < 2 && match; ++xo) {
+              TileName wantTile = grid[yo][xo];
+              if (wantTile != IGNORE) {
+                if (!Cave::isTile(tileMap, x + xo, y + yo, wantTile)) {
+                  match = false;
+                }
+              }
+            }
+          }
+          if (match) {
+            Cave::setCell(tileMap, x + up.xoff1, y + up.yoff1, up.tile1);
+            smoothedGrid[y + up.yoff1][x + up.xoff1] = SMOOTHED;
+            break;
+          }
+        }
       }
     }
   }
