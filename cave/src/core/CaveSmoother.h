@@ -7,19 +7,18 @@
 #include "CaveInfo.h"
 #include "TileTypes.h"
 
-
 namespace Cave {
 
 struct UpdateInfo;
 
 class CaveSmoother {
-  void smoothEdges(std::vector<std::vector<int>>& smoothedGrid);
-  void smoothCorners(std::vector<std::vector<int>>& smoothedGrid);
-  void smoothPoints(std::vector<std::vector<int>>& smoothedGrid);
+  void smoothEdges(std::vector<std::vector<bool>>& smoothedGrid);
+  void smoothCorners(std::vector<std::vector<bool>>& smoothedGrid);
+  void smoothPoints();
   template <size_t SZ>
   void smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
                      std::vector<std::vector<int>>& inGrid,
-                     std::vector<std::vector<int>>& smoothedGrid);
+                     std::vector<std::vector<bool>>& smoothedGrid);
 
  public:
   CaveSmoother(TileMap& tm, const CaveInfo& i);

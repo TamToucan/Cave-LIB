@@ -65,7 +65,7 @@ namespace Cave {
 // Two grids are maintained; inGrid is just a copy of the TileMapLayer so
 // we aren' getting the tile atlas all the time to find walls and because
 // the actual TileMapLayer is being updates.
-// The smoothedGrid is really just a bool of what tiles have been SMOOTHED.
+// The smoothedGrid is a bool if tile has been smoothed
 // This stops a tile being updated twice.
 //
 // We want to check the 4x4 using the top and left border walls and have the
@@ -451,9 +451,9 @@ CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
 CaveSmoother::~CaveSmoother() {}
 
 void CaveSmoother::smooth() {
-  std::vector<std::vector<int>> smoothedGrid(
+  std::vector<std::vector<bool>> smoothedGrid(
       info.mCaveHeight + GRD_H + 1,
-      std::vector<int>(info.mCaveWidth + GRD_W + 1, IGNORE));
+      std::vector<bool>(info.mCaveWidth + GRD_W + 1, false));
 
   smoothEdges(smoothedGrid);
 
@@ -461,7 +461,7 @@ void CaveSmoother::smooth() {
     smoothCorners(smoothedGrid);
   }
   if (info.mSmoothPoints) {
-    smoothPoints(smoothedGrid);
+    smoothPoints();
   }
 }
 
@@ -470,7 +470,7 @@ void CaveSmoother::smooth() {
 template <size_t SZ>
 void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
                                  std::vector<std::vector<int>>& inGrid,
-                                 std::vector<std::vector<int>>& smoothedGrid) {
+                                 std::vector<std::vector<bool>>& smoothedGrid) {
   //
   // Smooth the grid
   //
@@ -506,13 +506,13 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
                                        << pos2.y);
           // Ensure not smoothed it already
           // - can check both pos since p2 == p1 if no 2nd tile
-          if ((smoothedGrid[pos1.y][pos1.x] == IGNORE) &&
-              (smoothedGrid[pos2.y][pos2.x] == IGNORE)) {
+          if ((smoothedGrid[pos1.y][pos1.x] == false) &&
+              (smoothedGrid[pos2.y][pos2.x] == false)) {
             LOG_DEBUG("         SMOOTH1 -> " << up.t1);
             // Smooth the first (N/O) tile
             // - Need to translate the grid pos back to cave pos
             Cave::setCell(tileMap, pos1.x - 1, pos1.y - 1, up.t1);
-            smoothedGrid[pos1.y][pos1.x] = SMOOTHED;
+            smoothedGrid[pos1.y][pos1.x] = true;
             // Check if there is a second (M) tile
             if (up.t2 != IGNORE) {
               LOG_DEBUG("      FOUND2 " << pos2.x << "," << pos2.y);
@@ -520,7 +520,7 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
               // Smooth the second (M) tile
               // - Need to translate the grid pos back to cave pos
               Cave::setCell(tileMap, pos2.x - 1, pos2.y - 1, up.t2);
-              smoothedGrid[pos2.y][pos2.x] = SMOOTHED;
+              smoothedGrid[pos2.y][pos2.x] = true;
             } else {
               LOG_DEBUG("  IGNORE TILE2: " << pos2.x << "," << pos2.y);
             }
@@ -541,7 +541,7 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
 // and find any matching update(s). For each match set the TileMapLayer
 // cell(s) for the 1 or 2 tiles for each update.
 //
-void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
+void CaveSmoother::smoothEdges(std::vector<std::vector<bool>>& smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
@@ -564,7 +564,7 @@ void CaveSmoother::smoothEdges(std::vector<std::vector<int>>& smoothedGrid) {
   smoothTheGrid(updates, inGrid, smoothedGrid);
 }
 
-void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
+void CaveSmoother::smoothCorners(std::vector<std::vector<bool>>& smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
@@ -593,17 +593,19 @@ void CaveSmoother::smoothCorners(std::vector<std::vector<int>>& smoothedGrid) {
   smoothTheGrid(cornerUpdates, inGrid, smoothedGrid);
 }
 
-void CaveSmoother::smoothPoints(std::vector<std::vector<int>>& smoothedGrid) {
+void CaveSmoother::smoothPoints() {
   LOG_INFO("====================== SMOOTH POINTS");
+  std::vector<std::vector<bool>> smoothedGrid(
+      info.mCaveHeight + 2 + 1,
+      std::vector<bool>(info.mCaveWidth + 2 + 1, false));
   for (int y = 0; y < info.mCaveHeight - 1; y++) {
     for (int x = 0; x < info.mCaveWidth - 1; x++) {
       int idx = 0;
       for (const auto& up : pointUpdates) {
-        if (smoothedGrid[y + up.yoff1][x + up.xoff1]) continue;
-
         for (int i = 0; i < up.numGrids; ++i) {
+          if (smoothedGrid[y + up.yoff1][x + up.xoff1]) continue;
           bool match = true;
-
+          LOG_INFO("SPNT: " << x << "," << y << " up:" << up.xoff1 << "," << up.yoff1 << " tile:" << up.tile1);
           const auto* grid = up.grids[i];
           for (int yo = 0; yo < 2 && match; ++yo) {
             for (int xo = 0; xo < 2 && match; ++xo) {
@@ -611,13 +613,17 @@ void CaveSmoother::smoothPoints(std::vector<std::vector<int>>& smoothedGrid) {
               if (wantTile != IGNORE) {
                 if (!Cave::isTile(tileMap, x + xo, y + yo, wantTile)) {
                   match = false;
+                } else {
+                  LOG_INFO("...match off: " << xo << "," << yo);
                 }
               }
             }
           }
           if (match) {
+            LOG_INFO("...FULL MATCH set:" << x + 1 + up.xoff1 << "," << y + 1 + up.yoff1
+                                          << " tile:" << up.tile1);
             Cave::setCell(tileMap, x + up.xoff1, y + up.yoff1, up.tile1);
-            smoothedGrid[y + up.yoff1][x + up.xoff1] = SMOOTHED;
+            smoothedGrid[y + up.yoff1][x + up.xoff1] = true;
             break;
           }
         }

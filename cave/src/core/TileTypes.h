@@ -75,7 +75,7 @@ enum TileName {
   FLOOR,
   TILE_COUNT,
 
-  SMOOTHED,  // NOTE: No sprite created for these
+  // NOTE: No sprite created past TILE_COUNT
   IGNORE
 };
 
