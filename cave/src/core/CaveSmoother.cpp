@@ -352,16 +352,95 @@ static const TileName2x2 Grids_45d_2CUTS[] = {
      {IGNORE, H30a2}},
 };
 
+// 2 corners (b and d) from T45a
+static const TileName2x2 Grids_45a_bCUT[] = {
+    {{IGNORE, T45d},
+     {IGNORE, T45a}},
+
+    {{IGNORE, H30d2},
+     {IGNORE, T45a}},
+};
+static const TileName2x2 Grids_45a_dCUT[] = {
+    {{IGNORE, IGNORE},
+     {T45b, T45a}},
+
+    {{IGNORE, IGNORE},
+     {V60b2, T45a}},
+};
+// 2 corners (a and c) from T45b
+static const TileName2x2 Grids_45b_aCUT[] = {
+    {{T45c, IGNORE},
+     {T45b, IGNORE}},
+
+    {{H30c2, IGNORE},
+     {T45b, IGNORE}},
+};
+static const TileName2x2 Grids_45b_cCUT[] = {
+    {{IGNORE, IGNORE},
+     {T45b, T45a}},
+
+    {{IGNORE, IGNORE},
+     {T45b, V60a2}},
+};
+// 2 corners (b and d) from T45c
+static const TileName2x2 Grids_45c_bCUT[] = {
+    {{T45c, T45d},
+     {IGNORE, IGNORE}},
+
+    {{T45c, V60d2},
+     {IGNORE, IGNORE}},
+};
+static const TileName2x2 Grids_45c_dCUT[] = {
+    {{T45c, IGNORE},
+     {T45b, IGNORE}},
+
+    {{T45c, IGNORE},
+     {H30b2, IGNORE}},
+};
+// 2 corners (a and c) from T45d
+static const TileName2x2 Grids_45d_aCUT[] = {
+    {{T45c, T45d},
+     {IGNORE, IGNORE}},
+
+    {{V60c2, T45d},
+     {IGNORE, IGNORE}},
+};
+static const TileName2x2 Grids_45d_cCUT[] = {
+    {{IGNORE, T45d},
+     {IGNORE, T45a}},
+
+    {{IGNORE, T45d},
+     {IGNORE, H30a2}},
+};
+
 static const PointUpdate Grid45a_2CUT = make_point_update(Grids_45a_2CUTS, 1, 1, T45a2CT);
 static const PointUpdate Grid45b_2CUT = make_point_update(Grids_45b_2CUTS, 0, 1, T45b2CT);
 static const PointUpdate Grid45c_2CUT = make_point_update(Grids_45c_2CUTS, 0, 0, T45c2CT);
 static const PointUpdate Grid45d_2CUT = make_point_update(Grids_45d_2CUTS, 1, 0, T45d2CT);
+
+static const PointUpdate Grid45a_bCUT = make_point_update(Grids_45a_bCUT, 1, 1, T45abCT);
+static const PointUpdate Grid45a_dCUT = make_point_update(Grids_45a_dCUT, 1, 1, T45adCT);
+static const PointUpdate Grid45b_aCUT = make_point_update(Grids_45b_aCUT, 0, 1, T45baCT);
+static const PointUpdate Grid45b_cCUT = make_point_update(Grids_45b_cCUT, 0, 1, T45bcCT);
+static const PointUpdate Grid45c_bCUT = make_point_update(Grids_45c_bCUT, 0, 0, T45cbCT);
+static const PointUpdate Grid45c_dCUT = make_point_update(Grids_45c_dCUT, 0, 0, T45cdCT);
+static const PointUpdate Grid45d_aCUT = make_point_update(Grids_45d_aCUT, 1, 0, T45daCT);
+static const PointUpdate Grid45d_cCUT = make_point_update(Grids_45d_cCUT, 1, 0, T45dcCT);
 
 static const PointUpdate pointUpdates[] = {
     Grid45a_2CUT,
     Grid45b_2CUT,
     Grid45c_2CUT,
     Grid45d_2CUT,
+
+    Grid45a_bCUT,
+    Grid45a_dCUT,
+    Grid45b_aCUT,
+    Grid45b_cCUT,
+    Grid45c_bCUT,
+    Grid45c_dCUT,
+    Grid45d_aCUT,
+    Grid45d_cCUT,
 };
 
 //

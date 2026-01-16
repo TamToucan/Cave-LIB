@@ -113,7 +113,7 @@ int getAtlasIndex(Cave::TileName tile) {
       return Idx(5, 1);
     case Cave::T45cbCT:
       return Idx(6, 1);
-    case Cave::T45ccdT:
+    case Cave::T45cdCT:
       return Idx(6, 2);
     case Cave::T45daCT:
       return Idx(7, 1);
