@@ -674,6 +674,7 @@ void CaveSmoother::smoothCorners(std::vector<std::vector<bool>>& smoothedGrid) {
 
 void CaveSmoother::smoothPoints() {
   LOG_INFO("====================== SMOOTH POINTS");
+  auto tileMapCopy(tileMap);
   std::vector<std::vector<bool>> smoothedGrid(
       info.mCaveHeight + 2 + 1,
       std::vector<bool>(info.mCaveWidth + 2 + 1, false));
@@ -690,7 +691,8 @@ void CaveSmoother::smoothPoints() {
             for (int xo = 0; xo < 2 && match; ++xo) {
               TileName wantTile = grid[yo][xo];
               if (wantTile != IGNORE) {
-                if (!Cave::isTile(tileMap, x + xo, y + yo, wantTile)) {
+                // Use the original grid to check for matches
+                if (!Cave::isTile(tileMapCopy, x + xo, y + yo, wantTile)) {
                   match = false;
                 } else {
                   LOG_INFO("...match off: " << xo << "," << yo);
