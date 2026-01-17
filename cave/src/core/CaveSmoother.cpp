@@ -166,11 +166,11 @@ unsigned char TileGrid28n[GRD_H][GRD_W] = {
 // - East, South, West, North
 //
 unsigned char TileGridDEe[GRD_H][GRD_W] = {
-    {X, X, S, S}, {X, B, O, S}, {X, X, S, S}, {X, X, X, X}};
+    {X, X, X, X}, {X, X, S, S}, {X, B, O, S}, {X, X, S, S}};
 unsigned char TileGridDEs[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, B, X, X}, {S, O, S, X}, {X, S, X, X}};
 unsigned char TileGridDEw[GRD_H][GRD_W] = {
-    {X, S, X, X}, {S, O, B, X}, {X, S, X, X}, {X, X, X, X}};
+    {X, X, X, X}, {X, S, X, X}, {S, O, B, X}, {X, S, X, X}};
 unsigned char TileGridDEn[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, S, X, X}, {S, O, S, X}, {X, B, X, X}};
 
