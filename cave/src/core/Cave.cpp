@@ -442,8 +442,8 @@ void Cave::smooth(TileMap& tileMap) {
 
 TileName Cave::getTile(const TileMap& tileMap, int cx, int cy) {
   Vector2i mapPos = getMapPos(cx, cy);
-  if (mapPos.x >= 0 && mapPos.x < tileMap.size() && mapPos.y >= 0 &&
-      mapPos.y < tileMap[0].size()) {
+  if (mapPos.y >= 0 && mapPos.y < (int)tileMap.size() &&
+      mapPos.x >= 0 && mapPos.x < (int)tileMap[0].size()) {
     return static_cast<TileName>(tileMap[mapPos.y][mapPos.x]);
   }
   return IGNORE;

@@ -553,8 +553,8 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
   //
   // Smooth the grid
   //
-  for (int y = 0; y < info.mCaveHeight - 1; y++) {
-    for (int x = 0; x < info.mCaveWidth - 1; x++) {
+  for (int y = 0; y < info.mCaveHeight; y++) {
+    for (int x = 0; x < info.mCaveWidth; x++) {
       // Get the value of the 4x4 grid
       LOG_DEBUG("==MASK value " << x << "," << y);
       int value = 0;
@@ -678,8 +678,8 @@ void CaveSmoother::smoothPoints() {
   std::vector<std::vector<bool>> smoothedGrid(
       info.mCaveHeight + 2 + 1,
       std::vector<bool>(info.mCaveWidth + 2 + 1, false));
-  for (int y = 0; y < info.mCaveHeight - 1; y++) {
-    for (int x = 0; x < info.mCaveWidth - 1; x++) {
+  for (int y = 0; y < info.mCaveHeight; y++) {
+    for (int x = 0; x < info.mCaveWidth; x++) {
       int idx = 0;
       for (const auto& up : pointUpdates) {
         for (int i = 0; i < up.numGrids; ++i) {
