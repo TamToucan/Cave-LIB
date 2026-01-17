@@ -693,7 +693,7 @@ void CaveSmoother::smoothPoints() {
         for (int i = 0; i < up.numGrids; ++i) {
           if (smoothedGrid[y + up.yoff1][x + up.xoff1]) continue;
           bool match = true;
-          LOG_INFO("SPNT: " << x << "," << y << " up:" << up.xoff1 << "," << up.yoff1 << " tile:" << up.tile1);
+          LOG_DEBUG("SPNT: " << x << "," << y << " up:" << up.xoff1 << "," << up.yoff1 << " tile:" << up.tile1);
           const auto* grid = up.grids[i];
           for (int yo = 0; yo < 2 && match; ++yo) {
             for (int xo = 0; xo < 2 && match; ++xo) {
@@ -703,13 +703,13 @@ void CaveSmoother::smoothPoints() {
                 if (!Cave::isTile(tileMapCopy, x + xo, y + yo, wantTile)) {
                   match = false;
                 } else {
-                  LOG_INFO("...match off: " << xo << "," << yo);
+                  LOG_DEBUG("...match off: " << xo << "," << yo);
                 }
               }
             }
           }
           if (match) {
-            LOG_INFO("...FULL MATCH set:" << x + 1 + up.xoff1 << "," << y + 1 + up.yoff1
+            LOG_DEBUG("...FULL MATCH set:" << x + 1 + up.xoff1 << "," << y + 1 + up.yoff1
                                           << " tile:" << up.tile1);
             Cave::setCell(tileMap, x + up.xoff1, y + up.yoff1, up.tile1);
             smoothedGrid[y + up.yoff1][x + up.xoff1] = true;
