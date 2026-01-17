@@ -201,6 +201,21 @@ CuteCave& CuteCave::setAmp(float amp) {
   return *this;
 }
 
+CuteCave& CuteCave::setSmoothing(bool doSmoothing) {
+  m_info.mSmoothing = doSmoothing;
+  return *this;
+}
+
+CuteCave& CuteCave::setSmoothCorners(bool doSmoothCorners) {
+  m_info.mSmoothCorners = doSmoothCorners;
+  return *this;
+}
+
+CuteCave& CuteCave::setSmoothPoints(bool doSmoothPoints) {
+  m_info.mSmoothPoints = doSmoothPoints;
+  return *this;
+}
+
 CuteCave& CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
   m_gen_params.mGenerations = gens;
   return *this;

@@ -21,6 +21,7 @@ struct Vector2i {
 };
 
 struct CaveInfo {
+  bool mSmoothing = true;
   bool mSmoothCorners = true;
   bool mSmoothPoints = true;
   int mCaveWidth = 2;

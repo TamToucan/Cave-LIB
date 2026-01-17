@@ -1,25 +1,24 @@
 #ifndef CUTE_CAVE_HPP
 #define CUTE_CAVE_HPP
 
+#include <cute.h>
+
 #include "CaveInfo.h"
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-#include <cute.h>
-
 namespace CuteCave {
 
 class CuteCave {
-
-public:
+ public:
   struct TileAtlas {
     CF_Texture texture;
     uint64_t base_id;
-    int width_in_tiles; // Should be 512 / 64 = 8 for 512x512 (64x64 tiles)
+    int width_in_tiles;  // Should be 512 / 64 = 8 for 512x512 (64x64 tiles)
     CF_Sprite tile_sprites[Cave::TileName::TILE_COUNT];
   };
 
-public:
+ public:
   CuteCave();
   CuteCave& setCaveSize(int width, int height);
   CuteCave& setBorderCellSize(int width, int height);
@@ -30,17 +29,20 @@ public:
   CuteCave& setWallChance(float wallChance);
   CuteCave& setFreq(float freq);
   CuteCave& setAmp(float amp);
+  CuteCave& setSmoothing(bool doSmoothing);
+  CuteCave& setSmoothCorners(bool doSmoothCorners);
+  CuteCave& setSmoothPoints(bool doSmoothPoints);
   CuteCave& setGenerations(std::vector<Cave::GenerationStep> gens);
 
-  TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
+  TileAtlas loadTileAtlas(const char* virtual_path, int tile_size);
 
   const Cave::TileMap make_cave(int seed);
 
-private:
+ private:
   Cave::CaveInfo m_info;
   Cave::GenerationParams m_gen_params;
 };
 
-} // namespace CuteCave
+}  // namespace CuteCave
 
-#endif // CUTE_CAVE_HPP
+#endif  // CUTE_CAVE_HPP

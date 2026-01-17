@@ -1,7 +1,6 @@
 #include "Cave.h"
 
 #include <algorithm>
-#include <cmath>
 #include <set>
 
 #include "CaveSmoother.h"
@@ -63,13 +62,15 @@ void Cave::initialise(TileMap& tileMap) {
   const double H = mInfo.mCaveHeight - 1 + mParams.mAmp;
   double (*pf)(double, double, int) =
       mParams.mPerlin ? &Algo::getSNoise2 : &Algo::getNoise2;
+
   for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
     for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
       double x = cx / W * mParams.mFreq;
       double y = cy / H * mParams.mFreq;
+
       double n1 = mParams.mPerlin
                       ? (*pf)(x, y, mParams.mOctaves)
-                      : abs(simple.getFloat()) - mParams.mWallChance;
+                      : simple.getFloat() - mParams.mWallChance;
       setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
     }
   }
@@ -436,6 +437,9 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
 }
 
 void Cave::smooth(TileMap& tileMap) {
+  if (!mInfo.mSmoothing) {
+    return;
+  }
   CaveSmoother smoother(tileMap, mInfo);
   smoother.smooth();
 }
