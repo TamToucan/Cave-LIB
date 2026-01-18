@@ -11,9 +11,10 @@
 namespace {
 
 int getAtlasIndex(Cave::TileName tile) {
-  // Helper lambda to calculate index: Row * 8 + Col
+  constexpr int ATLASWITDTH = 8;
+  // Helper lambda to calculate index: Row * ATLASWITDTH + Col
   // Assuming 0,0 is Top-Left
-  auto Idx = [](int col, int row) { return (row * 8) + col; };
+  auto Idx = [](int col, int row) { return (row * ATLASWITDTH) + col; };
 
   switch (tile) {
     case Cave::FLOOR:

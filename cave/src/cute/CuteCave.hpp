@@ -22,7 +22,7 @@ class CuteCave {
   CuteCave();
   CuteCave& setCaveSize(int width, int height);
   CuteCave& setBorderCellSize(int width, int height);
-  CuteCave& setCellSize(int width, int height);
+  CuteCave& setCellSize(int width, int height);  // NOT actually needed, GDCave thing
   CuteCave& setStartCell(int x, int y);
   CuteCave& setOctaves(int octaves);
   CuteCave& setPerlin(bool usePerlin);

@@ -28,10 +28,10 @@ struct CaveInfo {
   int mCaveHeight = 2;
   int mBorderWidth = 1;
   int mBorderHeight = 1;
-  int mCellWidth = 1;
-  int mCellHeight = 1;
-  int mStartCellX = 0;
-  int mStartCellY = 0;
+  int mCellWidth = 1;   // Only used for Godot GDCave
+  int mCellHeight = 1;  // Only used for Godot GDCave
+  int mStartCellX = 0;  // Not used yet
+  int mStartCellY = 0;  // Not used yet
   int mLayer = 0;
 };
 

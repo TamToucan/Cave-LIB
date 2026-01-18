@@ -1,10 +1,12 @@
 #include "GDCave.hpp"
-#include "core/Cave.h"
-#include "core/TileTypes.h"
+
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "Debug.h"
+#include "core/Cave.h"
+#include "core/TileTypes.h"
+
 
 using namespace godot;
 
@@ -40,66 +42,66 @@ GDCave::GDCave() {
 
 GDCave::~GDCave() {}
 
-GDCave *GDCave::setCaveSize(Vector2i caveSize) {
+GDCave* GDCave::setCaveSize(Vector2i caveSize) {
   m_cave_info.mCaveWidth = caveSize.x;
   m_cave_info.mCaveHeight = caveSize.y;
   return this;
 }
 
-GDCave *GDCave::setBorderCellSize(Vector2i cells) {
+GDCave* GDCave::setBorderCellSize(Vector2i cells) {
   m_cave_info.mBorderWidth = cells.x;
   m_cave_info.mBorderHeight = cells.y;
   return this;
 }
 
-GDCave *GDCave::setCellSize(Vector2i cells) {
+GDCave* GDCave::setCellSize(Vector2i cells) {
   m_cave_info.mCellWidth = cells.x;
   m_cave_info.mCellHeight = cells.y;
   return this;
 }
 
-GDCave *GDCave::setStartCell(int x, int y) {
+GDCave* GDCave::setStartCell(int x, int y) {
   m_cave_info.mStartCellX = x;
   m_cave_info.mStartCellY = y;
   return this;
 }
 
-GDCave *GDCave::setFloor(godot::Vector2i floor) {
+GDCave* GDCave::setFloor(godot::Vector2i floor) {
   m_floor_tile = floor;
   return this;
 }
 
-GDCave *GDCave::setWall(godot::Vector2i wall) {
+GDCave* GDCave::setWall(godot::Vector2i wall) {
   m_wall_tile = wall;
   return this;
 }
 
-GDCave *GDCave::setOctaves(int octaves) {
+GDCave* GDCave::setOctaves(int octaves) {
   m_gen_params.mOctaves = octaves;
   return this;
 }
 
-GDCave *GDCave::setWallChance(float wallChance) {
+GDCave* GDCave::setWallChance(float wallChance) {
   m_gen_params.mWallChance = wallChance;
   return this;
 }
 
-GDCave *GDCave::setPerlin(bool usePerlin) {
+GDCave* GDCave::setPerlin(bool usePerlin) {
   m_gen_params.mPerlin = usePerlin;
   return this;
 }
 
-GDCave *GDCave::setFreq(float freq) {
+GDCave* GDCave::setFreq(float freq) {
   m_gen_params.mFreq = freq;
   return this;
 }
 
-GDCave *GDCave::setAmp(float amp) {
+GDCave* GDCave::setAmp(float amp) {
   m_gen_params.mAmp = amp;
   return this;
 }
 
-GDCave *GDCave::setGenerations(const godot::Array &gens) {
+GDCave* GDCave::setGenerations(const godot::Array& gens) {
   m_gen_params.mGenerations.clear();
   for (int i = 0; i < gens.size(); ++i) {
     Array gen = gens[i];
@@ -122,7 +124,7 @@ GDCave *GDCave::setGenerations(const godot::Array &gens) {
   return this;
 }
 
-void GDCave::make_cave(TileMapLayer *pTileMap, int layer, int seed) {
+void GDCave::make_cave(TileMapLayer* pTileMap, int layer, int seed) {
   m_gen_params.seed = seed;
 
   Cave::Cave cave(m_cave_info, m_gen_params);
@@ -133,20 +135,20 @@ void GDCave::make_cave(TileMapLayer *pTileMap, int layer, int seed) {
     for (int x = 0; x < caveMap[0].size(); ++x) {
       Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
       switch (tile_name) {
-      case Cave::FLOOR:
-        LOG_DEBUG_CONT(" ");
-        break;
-      default:
-        LOG_DEBUG_CONT("#");
-        break;
+        case Cave::FLOOR:
+          LOG_DEBUG_CONT(" ");
+          break;
+        default:
+          LOG_DEBUG_CONT("#");
+          break;
       }
     }
     LOG_DEBUG("");
   }
 }
 
-void GDCave::copy_core_to_tilemap(TileMapLayer *pTileMap, int layer,
-                                  const Cave::TileMap &caveMap) {
+void GDCave::copy_core_to_tilemap(TileMapLayer* pTileMap, int layer,
+                                  const Cave::TileMap& caveMap) {
   const int BW = m_cave_info.mBorderWidth;
   const int BH = m_cave_info.mBorderHeight;
   LOG_INFO("COPYING CORE TO TILEMAP: " << caveMap.size() << "x"
@@ -240,66 +242,66 @@ void GDCave::copy_core_to_tilemap(TileMapLayer *pTileMap, int layer,
 
 Vector2i GDCave::map_tilename_to_vector2i(Cave::TileName tile_name) {
   switch (tile_name) {
-  case Cave::FLOOR:
-    return m_floor_tile;
-  case Cave::WALL:
-    return m_wall_tile;
-  case Cave::T45a:
-    return Vector2i(2, 6);
-  case Cave::T45b:
-    return Vector2i(3, 6);
-  case Cave::T45c:
-    return Vector2i(0, 6);
-  case Cave::T45d:
-    return Vector2i(1, 6);
-  case Cave::V60a1:
-    return Vector2i(2, 3);
-  case Cave::V60a2:
-    return Vector2i(2, 4);
-  case Cave::V60b1:
-    return Vector2i(1, 3);
-  case Cave::V60b2:
-    return Vector2i(1, 4);
-  case Cave::V60c1:
-    return Vector2i(3, 4);
-  case Cave::V60c2:
-    return Vector2i(3, 3);
-  case Cave::V60d1:
-    return Vector2i(0, 4);
-  case Cave::V60d2:
-    return Vector2i(0, 3);
-  case Cave::H30a1:
-    return Vector2i(2, 5);
-  case Cave::H30a2:
-    return Vector2i(3, 5);
-  case Cave::H30b1:
-    return Vector2i(7, 5);
-  case Cave::H30b2:
-    return Vector2i(6, 5);
-  case Cave::H30c1:
-    return Vector2i(1, 5);
-  case Cave::H30c2:
-    return Vector2i(0, 5);
-  case Cave::H30d1:
-    return Vector2i(4, 5);
-  case Cave::H30d2:
-    return Vector2i(5, 5);
-  case Cave::SINGLE:
-    return Vector2i(4, 7);
-  case Cave::END_N:
-    return Vector2i(4, 6);
-  case Cave::END_S:
-    return Vector2i(6, 6);
-  case Cave::END_E:
-    return Vector2i(5, 6);
-  case Cave::END_W:
-    return Vector2i(7, 6);
-  default:
-    return Vector2i(-1, -1);
+    case Cave::FLOOR:
+      return m_floor_tile;
+    case Cave::WALL:
+      return m_wall_tile;
+    case Cave::T45a:
+      return Vector2i(2, 6);
+    case Cave::T45b:
+      return Vector2i(3, 6);
+    case Cave::T45c:
+      return Vector2i(0, 6);
+    case Cave::T45d:
+      return Vector2i(1, 6);
+    case Cave::V60a1:
+      return Vector2i(2, 3);
+    case Cave::V60a2:
+      return Vector2i(2, 4);
+    case Cave::V60b1:
+      return Vector2i(1, 3);
+    case Cave::V60b2:
+      return Vector2i(1, 4);
+    case Cave::V60c1:
+      return Vector2i(3, 4);
+    case Cave::V60c2:
+      return Vector2i(3, 3);
+    case Cave::V60d1:
+      return Vector2i(0, 4);
+    case Cave::V60d2:
+      return Vector2i(0, 3);
+    case Cave::H30a1:
+      return Vector2i(2, 5);
+    case Cave::H30a2:
+      return Vector2i(3, 5);
+    case Cave::H30b1:
+      return Vector2i(7, 5);
+    case Cave::H30b2:
+      return Vector2i(6, 5);
+    case Cave::H30c1:
+      return Vector2i(1, 5);
+    case Cave::H30c2:
+      return Vector2i(0, 5);
+    case Cave::H30d1:
+      return Vector2i(4, 5);
+    case Cave::H30d2:
+      return Vector2i(5, 5);
+    case Cave::SINGLE:
+      return Vector2i(4, 7);
+    case Cave::END_N:
+      return Vector2i(4, 6);
+    case Cave::END_S:
+      return Vector2i(6, 6);
+    case Cave::END_E:
+      return Vector2i(5, 6);
+    case Cave::END_W:
+      return Vector2i(7, 6);
+    default:
+      return Vector2i(-1, -1);
   }
 }
 
-void GDCave::setCell(TileMapLayer *pTileMap, int layer, int cx, int cy,
+void GDCave::setCell(TileMapLayer* pTileMap, int layer, int cx, int cy,
                      Vector2i tile) {
   int mapX = m_cave_info.mBorderWidth + (cx * m_cave_info.mCellWidth);
   int mapY = m_cave_info.mBorderHeight + (cy * m_cave_info.mCellHeight);
