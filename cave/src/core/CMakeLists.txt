@@ -16,10 +16,6 @@ add_library(${CAVE_LIB_NAME} SHARED ${CAVE_SOURCES})
 target_include_directories(${CAVE_LIB_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"       # . (core)
     "${CMAKE_CURRENT_SOURCE_DIR}/.."    # .. (src)
-    # These hardcoded dependency paths should match where FetchContent puts 'Libs'
-    "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/MathStuff"
-    "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Algo"
-    "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Util"
 )
 
 # Properties
@@ -35,4 +31,5 @@ target_link_libraries(${CAVE_LIB_NAME}
     PRIVATE PCG
     PRIVATE Random
     PRIVATE MathStuff
+    PUBLIC Util
 )
