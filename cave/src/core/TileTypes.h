@@ -30,11 +30,16 @@ enum TileName {
   H30d1,
   H30d2,
   SINGLE,
+  // End-caps
   END_N,
   END_S,
   END_E,
   END_W,
-  // Round both corners of dead-end
+  //////////////////////////////////////
+  // These tiles are all the "floor" tiles
+  // The completely empty tile
+  FLOOR,
+  // Round both corners of dead-ends
   DEND_N,
   DEND_S,
   DEND_E,
@@ -44,6 +49,10 @@ enum TileName {
   CORNR_B,
   CORNR_C,
   CORNR_D,
+  // Mark the range
+  FLOOR_START = FLOOR,
+  FLOOR_END = CORNR_D,
+  //////////////////////////////////////
 
   // Cut 2 corners off the 45 degree tile
   T45a2CT,
@@ -78,7 +87,6 @@ enum TileName {
 
   // Special values for smoother internal grids.
   SOLID,
-  FLOOR,
   TILE_COUNT,
 
   // NOTE: No sprite created past TILE_COUNT

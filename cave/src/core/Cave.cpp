@@ -460,4 +460,143 @@ void Cave::setCell(TileMap& tileMap, int x, int y, int tile) {
   tileMap[mapPos.y][mapPos.x] = tile;
 }
 
+constexpr int ATLASWITDTH = 8;
+Vector2i Cave::getAtlasCoords(int tile) {
+  int idx = getAtlasIndex(tile);
+  return {idx % ATLASWITDTH, idx / ATLASWITDTH};
+}
+
+int Cave::getAtlasIndex(int tile) {
+  // Helper lambda to calculate index: Row * ATLASWITDTH + Col
+  // Assuming 0,0 is Top-Left
+  auto Idx = [](int col, int row) { return (row * ATLASWITDTH) + col; };
+
+  switch (tile) {
+    case TileName::FLOOR:
+      return Idx(0, 7);
+    case TileName::WALL:
+      return Idx(1, 7);
+
+    case TileName::T45a:
+      return Idx(2, 6);
+    case TileName::T45b:
+      return Idx(3, 6);
+    case TileName::T45c:
+      return Idx(0, 6);
+    case TileName::T45d:
+      return Idx(1, 6);
+
+    case TileName::V60a1:
+      return Idx(2, 3);
+    case TileName::V60a2:
+      return Idx(2, 4);
+    case TileName::V60b1:
+      return Idx(1, 3);
+    case TileName::V60b2:
+      return Idx(1, 4);
+    case TileName::V60c1:
+      return Idx(3, 4);
+    case TileName::V60c2:
+      return Idx(3, 3);
+    case TileName::V60d1:
+      return Idx(0, 4);
+    case TileName::V60d2:
+      return Idx(0, 3);
+
+    case TileName::H30a1:
+      return Idx(2, 5);
+    case TileName::H30a2:
+      return Idx(3, 5);
+    case TileName::H30b1:
+      return Idx(7, 5);
+    case TileName::H30b2:
+      return Idx(6, 5);
+    case TileName::H30c1:
+      return Idx(1, 5);
+    case TileName::H30c2:
+      return Idx(0, 5);
+    case TileName::H30d1:
+      return Idx(4, 5);
+    case TileName::H30d2:
+      return Idx(5, 5);
+
+    case TileName::END_N:
+      return Idx(4, 6);
+    case TileName::END_S:
+      return Idx(6, 6);
+    case TileName::END_E:
+      return Idx(5, 6);
+    case TileName::END_W:
+      return Idx(7, 6);
+
+    case TileName::DEND_N:
+      return Idx(4, 7);
+    case TileName::DEND_E:
+      return Idx(5, 7);
+    case TileName::DEND_S:
+      return Idx(6, 7);
+    case TileName::DEND_W:
+      return Idx(7, 7);
+
+    case TileName::CORNR_A:
+      return Idx(4, 4);
+    case TileName::CORNR_B:
+      return Idx(5, 4);
+    case TileName::CORNR_C:
+      return Idx(6, 4);
+    case TileName::CORNR_D:
+      return Idx(7, 4);
+
+    case TileName::SINGLE:
+      return Idx(3, 7);
+
+    case TileName::T45a2CT:
+      return Idx(2, 0);
+    case TileName::T45b2CT:
+      return Idx(3, 0);
+    case TileName::T45c2CT:
+      return Idx(3, 1);
+    case TileName::T45d2CT:
+      return Idx(2, 1);
+
+    case TileName::T45abCT:
+      return Idx(4, 2);
+    case TileName::T45adCT:
+      return Idx(4, 1);
+    case TileName::T45baCT:
+      return Idx(5, 2);
+    case TileName::T45bcCT:
+      return Idx(5, 1);
+    case TileName::T45cbCT:
+      return Idx(6, 1);
+    case TileName::T45cdCT:
+      return Idx(6, 2);
+    case TileName::T45daCT:
+      return Idx(7, 1);
+    case TileName::T45dcCT:
+      return Idx(7, 2);
+
+    case TileName::V60aCT:
+      return Idx(1, 2);
+    case TileName::V60bCT:
+      return Idx(0, 2);
+    case TileName::V60cCT:
+      return Idx(2, 2);
+    case TileName::V60dCT:
+      return Idx(3, 2);
+
+    case TileName::H30aCT:
+      return Idx(0, 1);
+    case TileName::H30bCT:
+      return Idx(1, 1);
+    case TileName::H30cCT:
+      return Idx(1, 0);
+    case TileName::H30dCT:
+      return Idx(0, 0);
+
+    default:
+      return Idx(0, 7);  // Default to FLOOR
+  }
+}
+
 }  // namespace Cave

@@ -10,15 +10,17 @@ file(GLOB_RECURSE GDCAVE_SOURCES CONFIGURE_DEPENDS
 
 # Define Shared Library
 add_library(${GDCAVE_LIB_NAME} SHARED ${GDCAVE_SOURCES})
+target_compile_definitions(${GDCAVE_LIB_NAME} PRIVATE GDCAVE_EXPORTS)
 
 # Include Directories
-target_include_directories(${GDCAVE_LIB_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/../core" # Access to sibling 'core'
-    "${CMAKE_CURRENT_SOURCE_DIR}"         # . (godot)
-    "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Util"
+target_include_directories(${GDCAVE_LIB_NAME}
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../core" # Access to sibling 'core'
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"         # . (godot)
+    PRIVATE "${CMAKE_BINARY_DIR}/_deps/libs-src/lib/Util"
 )
 
 # Properties
+set_target_properties(${GDCAVE_LIB_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 if(NOT MSVC)
     set_target_properties(${GDCAVE_LIB_NAME} PROPERTIES PREFIX "")
 endif()

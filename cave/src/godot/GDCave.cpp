@@ -7,7 +7,6 @@
 #include "core/Cave.h"
 #include "core/TileTypes.h"
 
-
 using namespace godot;
 
 void GDCave::_bind_methods() {
@@ -134,14 +133,7 @@ void GDCave::make_cave(TileMapLayer* pTileMap, int layer, int seed) {
   for (int y = 0; y < caveMap.size(); ++y) {
     for (int x = 0; x < caveMap[0].size(); ++x) {
       Cave::TileName tile_name = static_cast<Cave::TileName>(caveMap[y][x]);
-      switch (tile_name) {
-        case Cave::FLOOR:
-          LOG_DEBUG_CONT(" ");
-          break;
-        default:
-          LOG_DEBUG_CONT("#");
-          break;
-      }
+      LOG_DEBUG_CONT(Cave::Cave::isEmpty(tile_name) ? " " : "#");
     }
     LOG_DEBUG("");
   }
@@ -240,65 +232,17 @@ void GDCave::copy_core_to_tilemap(TileMapLayer* pTileMap, int layer,
   }
 }
 
-Vector2i GDCave::map_tilename_to_vector2i(Cave::TileName tile_name) {
-  switch (tile_name) {
-    case Cave::FLOOR:
-      return m_floor_tile;
-    case Cave::WALL:
-      return m_wall_tile;
-    case Cave::T45a:
-      return Vector2i(2, 6);
-    case Cave::T45b:
-      return Vector2i(3, 6);
-    case Cave::T45c:
-      return Vector2i(0, 6);
-    case Cave::T45d:
-      return Vector2i(1, 6);
-    case Cave::V60a1:
-      return Vector2i(2, 3);
-    case Cave::V60a2:
-      return Vector2i(2, 4);
-    case Cave::V60b1:
-      return Vector2i(1, 3);
-    case Cave::V60b2:
-      return Vector2i(1, 4);
-    case Cave::V60c1:
-      return Vector2i(3, 4);
-    case Cave::V60c2:
-      return Vector2i(3, 3);
-    case Cave::V60d1:
-      return Vector2i(0, 4);
-    case Cave::V60d2:
-      return Vector2i(0, 3);
-    case Cave::H30a1:
-      return Vector2i(2, 5);
-    case Cave::H30a2:
-      return Vector2i(3, 5);
-    case Cave::H30b1:
-      return Vector2i(7, 5);
-    case Cave::H30b2:
-      return Vector2i(6, 5);
-    case Cave::H30c1:
-      return Vector2i(1, 5);
-    case Cave::H30c2:
-      return Vector2i(0, 5);
-    case Cave::H30d1:
-      return Vector2i(4, 5);
-    case Cave::H30d2:
-      return Vector2i(5, 5);
-    case Cave::SINGLE:
-      return Vector2i(4, 7);
-    case Cave::END_N:
-      return Vector2i(4, 6);
-    case Cave::END_S:
-      return Vector2i(6, 6);
-    case Cave::END_E:
-      return Vector2i(5, 6);
-    case Cave::END_W:
-      return Vector2i(7, 6);
-    default:
-      return Vector2i(-1, -1);
-  }
+// So can have static version that doesn't use m_xxx_tile
+Vector2i GDCave::getAtlasCoords(int tile_name) {
+  auto coords = Cave::Cave::getAtlasCoords(tile_name);
+  return Vector2i(coords.x, coords.y);
+}
+
+Vector2i GDCave::map_tilename_to_vector2i(int tile_name) {
+  auto coords = getAtlasCoords(tile_name);
+  if (tile_name == Cave::FLOOR) return m_floor_tile;
+  if (tile_name == Cave::WALL) return m_wall_tile;
+  return coords;
 }
 
 void GDCave::setCell(TileMapLayer* pTileMap, int layer, int cx, int cy,

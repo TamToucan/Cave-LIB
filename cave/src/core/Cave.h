@@ -37,6 +37,18 @@ class Cave {
 
   TileMap generate();
 
+  // Return true if the cell is empty (not a wall). This is needed
+  // for when corners have been rounded e.g. DEND_W is still "floor"
+  static bool isEmpty(int tile) {
+    return tile >= FLOOR_START && tile <= FLOOR_END;
+  }
+  static bool isEmpty(const TileMap& tileMap, int cx, int cy) {
+    return isEmpty(getTile(tileMap, cx, cy));
+  }
+
+  static Vector2i getAtlasCoords(int tile);
+  static int getAtlasIndex(int tile);
+
  private:
   void initialise(TileMap& tileMap);
   void runCellularAutomata(TileMap& tileMap);

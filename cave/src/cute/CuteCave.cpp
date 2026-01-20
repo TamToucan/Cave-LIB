@@ -8,144 +8,6 @@
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-namespace {
-
-int getAtlasIndex(Cave::TileName tile) {
-  constexpr int ATLASWITDTH = 8;
-  // Helper lambda to calculate index: Row * ATLASWITDTH + Col
-  // Assuming 0,0 is Top-Left
-  auto Idx = [](int col, int row) { return (row * ATLASWITDTH) + col; };
-
-  switch (tile) {
-    case Cave::FLOOR:
-      return Idx(0, 7);
-    case Cave::WALL:
-      return Idx(1, 7);
-
-    case Cave::T45a:
-      return Idx(2, 6);
-    case Cave::T45b:
-      return Idx(3, 6);
-    case Cave::T45c:
-      return Idx(0, 6);
-    case Cave::T45d:
-      return Idx(1, 6);
-
-    case Cave::V60a1:
-      return Idx(2, 3);
-    case Cave::V60a2:
-      return Idx(2, 4);
-    case Cave::V60b1:
-      return Idx(1, 3);
-    case Cave::V60b2:
-      return Idx(1, 4);
-    case Cave::V60c1:
-      return Idx(3, 4);
-    case Cave::V60c2:
-      return Idx(3, 3);
-    case Cave::V60d1:
-      return Idx(0, 4);
-    case Cave::V60d2:
-      return Idx(0, 3);
-
-    case Cave::H30a1:
-      return Idx(2, 5);
-    case Cave::H30a2:
-      return Idx(3, 5);
-    case Cave::H30b1:
-      return Idx(7, 5);
-    case Cave::H30b2:
-      return Idx(6, 5);
-    case Cave::H30c1:
-      return Idx(1, 5);
-    case Cave::H30c2:
-      return Idx(0, 5);
-    case Cave::H30d1:
-      return Idx(4, 5);
-    case Cave::H30d2:
-      return Idx(5, 5);
-
-    case Cave::END_N:
-      return Idx(4, 6);
-    case Cave::END_S:
-      return Idx(6, 6);
-    case Cave::END_E:
-      return Idx(5, 6);
-    case Cave::END_W:
-      return Idx(7, 6);
-
-    case Cave::DEND_N:
-      return Idx(4, 7);
-    case Cave::DEND_E:
-      return Idx(5, 7);
-    case Cave::DEND_S:
-      return Idx(6, 7);
-    case Cave::DEND_W:
-      return Idx(7, 7);
-
-    case Cave::CORNR_A:
-      return Idx(4, 4);
-    case Cave::CORNR_B:
-      return Idx(5, 4);
-    case Cave::CORNR_C:
-      return Idx(6, 4);
-    case Cave::CORNR_D:
-      return Idx(7, 4);
-
-    case Cave::SINGLE:
-      return Idx(3, 7);
-
-    case Cave::T45a2CT:
-      return Idx(2, 0);
-    case Cave::T45b2CT:
-      return Idx(3, 0);
-    case Cave::T45c2CT:
-      return Idx(3, 1);
-    case Cave::T45d2CT:
-      return Idx(2, 1);
-
-    case Cave::T45abCT:
-      return Idx(4, 2);
-    case Cave::T45adCT:
-      return Idx(4, 1);
-    case Cave::T45baCT:
-      return Idx(5, 2);
-    case Cave::T45bcCT:
-      return Idx(5, 1);
-    case Cave::T45cbCT:
-      return Idx(6, 1);
-    case Cave::T45cdCT:
-      return Idx(6, 2);
-    case Cave::T45daCT:
-      return Idx(7, 1);
-    case Cave::T45dcCT:
-      return Idx(7, 2);
-
-    case Cave::V60aCT:
-      return Idx(1, 2);
-    case Cave::V60bCT:
-      return Idx(0, 2);
-    case Cave::V60cCT:
-      return Idx(2, 2);
-    case Cave::V60dCT:
-      return Idx(3, 2);
-
-    case Cave::H30aCT:
-      return Idx(0, 1);
-    case Cave::H30bCT:
-      return Idx(1, 1);
-    case Cave::H30cCT:
-      return Idx(1, 0);
-    case Cave::H30dCT:
-      return Idx(0, 0);
-
-    default:
-      return Idx(0, 7);  // Default to FLOOR
-  }
-}
-
-}  // namespace
-
 ///////////////////////////////////////////////////////////////////////
 
 namespace CuteCave {
@@ -283,9 +145,8 @@ CuteCave::TileAtlas CuteCave::loadTileAtlas(const char* virtual_path,
 
   // 4. Pre-create Sprites
   for (int i = 0; i < Cave::TileName::TILE_COUNT; ++i) {
-    int atlas_index = getAtlasIndex((Cave::TileName)i);
-    atlas.tile_sprites[i] =
-        Cute::make_premade_sprite(atlas.base_id + atlas_index);
+    int atlas_index = Cave::Cave::getAtlasIndex(i);
+    atlas.tile_sprites[i] = Cute::make_premade_sprite(atlas.base_id + atlas_index);
   }
 
   return atlas;
