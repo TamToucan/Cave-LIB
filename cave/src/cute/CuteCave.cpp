@@ -79,6 +79,11 @@ CuteCave& CuteCave::setSmoothPoints(bool doSmoothPoints) {
   return *this;
 }
 
+CuteCave& CuteCave::setRemoveDiagonals(bool doRemoveDiagonals) {
+  m_info.mRemoveDiagonals = doRemoveDiagonals;
+  return *this;
+}
+
 CuteCave& CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
   m_gen_params.mGenerations = gens;
   return *this;
