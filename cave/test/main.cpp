@@ -6,7 +6,6 @@
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-
 int main() {
   Cave::CaveInfo info;
   Cave::GenerationParams params;
@@ -17,7 +16,7 @@ int main() {
   params.mPerlin = false;
   params.mWallChance = 0.65;
   params.mFreq = 13.7;
-
+#if 0
   Cave::GenerationStep step;
   step.b3_min = 3;
   step.b3_max = 4;
@@ -29,6 +28,7 @@ int main() {
   step.s5_max = 14;
   step.reps = 2;
   params.mGenerations.push_back(step);
+#endif
 
   // CaveInfo parameters
   info.mCaveWidth = 32;
@@ -37,6 +37,7 @@ int main() {
   info.mBorderHeight = 1;
   info.mCellWidth = 8;   // NOT actually needed, GDCave thing
   info.mCellHeight = 8;  // NOT actually needed, GDCave thing
+  info.mSmoothing = false;
 
   Cave::Cave cave(info, params);
   // Generate the cave

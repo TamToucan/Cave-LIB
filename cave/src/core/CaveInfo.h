@@ -21,9 +21,10 @@ struct Vector2i {
 };
 
 struct CaveInfo {
-  bool mSmoothing = true;
-  bool mSmoothCorners = true;
-  bool mSmoothPoints = true;
+  bool mRemoveDiagonals = false;
+  bool mSmoothing = true;      // NOTE if false, mRemoveDiagonals is done regardless
+  bool mSmoothCorners = true;  // NOTE: not used if mSmoothing is false
+  bool mSmoothPoints = true;   // NOTE: not used if mSmoothing is false
   int mCaveWidth = 2;
   int mCaveHeight = 2;
   int mBorderWidth = 1;

@@ -17,5 +17,8 @@ if(TARGET CaveLib::Cave)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:CaveLib::Cave>
         $<TARGET_FILE_DIR:cave_test>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:Util>
+        $<TARGET_FILE_DIR:cave_test>
     )
 endif()

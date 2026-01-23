@@ -437,9 +437,6 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
 }
 
 void Cave::smooth(TileMap& tileMap) {
-  if (!mInfo.mSmoothing) {
-    return;
-  }
   CaveSmoother smoother(tileMap, mInfo);
   smoother.smooth();
 }
