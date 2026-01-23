@@ -16,7 +16,7 @@ int main() {
   params.mPerlin = false;
   params.mWallChance = 0.65;
   params.mFreq = 13.7;
-#if 0
+
   Cave::GenerationStep step;
   step.b3_min = 3;
   step.b3_max = 4;
@@ -28,7 +28,6 @@ int main() {
   step.s5_max = 14;
   step.reps = 2;
   params.mGenerations.push_back(step);
-#endif
 
   // CaveInfo parameters
   info.mCaveWidth = 32;
