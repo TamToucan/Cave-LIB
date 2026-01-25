@@ -164,30 +164,35 @@ unsigned char TileGrid28n[GRD_H][GRD_W] = {
 //
 // Dead-End updates (both corners rounded)
 // - East, South, West, North
+// - Need 2 versions to handle map borders
 //
-unsigned char TileGridDEe[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, X, S, S}, {X, B, O, S}, {X, X, S, S}};
-unsigned char TileGridDEs[GRD_H][GRD_W] = {
+unsigned char TileGridDEn1[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
+unsigned char TileGridDEn2[GRD_H][GRD_W] = {
+    {X, X, S, X}, {X, S, O, S}, {X, X, B, X}, {X, X, X, X}};
+
+unsigned char TileGridDEs1[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, B, X, X}, {S, O, S, X}, {X, S, X, X}};
-unsigned char TileGridDEw[GRD_H][GRD_W] = {
+unsigned char TileGridDEs2[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, X, B, X}, {X, S, O, S}, {X, X, S, X}};
+
+unsigned char TileGridDEe1[GRD_H][GRD_W] = {
+    {X, X, S, X}, {X, B, O, S}, {X, X, S, X}, {X, X, X, X}};
+unsigned char TileGridDEe2[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, X, S, X}, {X, B, O, S}, {X, X, S, X}};
+
+unsigned char TileGridDEw1[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, B, X}, {X, S, X, X}, {X, X, X, X}};
+unsigned char TileGridDEw2[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, S, X, X}, {S, O, B, X}, {X, S, X, X}};
-unsigned char TileGridDEn[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, S, X, X}, {S, O, S, X}, {X, B, X, X}};
 
 // - N but moved and right a row to handle stop CORNER match
 // and maybe problems at map corners.
 // - S moved right
-unsigned char TileGridDEs2[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, X, B, X}, {X, S, O, S}, {X, X, S, X}};
-unsigned char TileGridDEn2[GRD_H][GRD_W] = {
-    {X, X, S, X}, {X, S, O, S}, {X, X, B, X}, {X, X, X, X}};
 
 // - E and W but moved up a row to handle problem with border dead-ends
 // getting matched with Croner updates first
-unsigned char TileGridDEw2[GRD_H][GRD_W] = {
-    {X, S, X, X}, {S, O, B, X}, {X, S, X, X}, {X, X, X, X}};
-unsigned char TileGridDEe2[GRD_H][GRD_W] = {
-    {X, X, S, S}, {X, B, O, S}, {X, X, S, S}, {X, X, X, X}};
+
 //
 // Corner updates (1 corner rounded)
 // - Corner A, B, C, D
@@ -295,10 +300,10 @@ UpdateInfo updates[] = {
 // e.g. a dead-end of a corridor
 UpdateInfo cornerUpdates[] = {
     // dead-ends (round both corners)
-    {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
-    {TileGridDEs, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
-    {TileGridDEe, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
-    {TileGridDEw, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
+    {TileGridDEn1, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
+    {TileGridDEs1, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
+    {TileGridDEe1, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
+    {TileGridDEw1, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
     {TileGridDEn2, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
     {TileGridDEs2, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
     {TileGridDEe2, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
