@@ -173,6 +173,8 @@ unsigned char TileGridDEw[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, S, X, X}, {S, O, B, X}, {X, S, X, X}};
 unsigned char TileGridDEn[GRD_H][GRD_W] = {
     {X, X, X, X}, {X, S, X, X}, {S, O, S, X}, {X, B, X, X}};
+unsigned char TileGridDEn2[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, O, S, X}, {X, B, X, X}, {X, X, X, X}};
 
 // - E and W but moved up a row to handle problem with border dead-ends
 // getting matched with Croner updates first
@@ -288,6 +290,7 @@ UpdateInfo updates[] = {
 UpdateInfo cornerUpdates[] = {
     // dead-ends (round both corners)
     {TileGridDEn, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
+    {TileGridDEn2, 0, 0, 0, 0, 0, 0, DEND_N, IGNORE},
     {TileGridDEs, 0, 0, 0, 0, 0, 0, DEND_S, IGNORE},
     {TileGridDEe, 0, 0, 0, 0, 0, 0, DEND_E, IGNORE},
     {TileGridDEw, 0, 0, 0, 0, 0, 0, DEND_W, IGNORE},
