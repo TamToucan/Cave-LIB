@@ -14,7 +14,7 @@
 
 namespace Cave {
 
-Cave::Cave(CaveInfo& info, const GenerationParams& params)
+Cave::Cave(CaveInfo &info, const GenerationParams &params)
     : mInfo(info), mParams(params) {}
 
 Cave::~Cave() {}
@@ -38,7 +38,7 @@ TileMap Cave::generate() {
   return tileMap;
 }
 
-void Cave::initialise(TileMap& tileMap) {
+void Cave::initialise(TileMap &tileMap) {
   RNG::RandSimple simple(mParams.seed);
 
   //
@@ -68,19 +68,18 @@ void Cave::initialise(TileMap& tileMap) {
       double x = cx / W * mParams.mFreq;
       double y = cy / H * mParams.mFreq;
 
-      double n1 = mParams.mPerlin
-                      ? (*pf)(x, y, mParams.mOctaves)
-                      : simple.getFloat() - mParams.mWallChance;
+      double n1 = mParams.mPerlin ? (*pf)(x, y, mParams.mOctaves)
+                                  : simple.getFloat() - mParams.mWallChance;
       setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
     }
   }
 }
 
-void Cave::runCellularAutomata(TileMap& tileMap) {
+void Cave::runCellularAutomata(TileMap &tileMap) {
   if (!mParams.mGenerations.empty()) {
     // initialise the RogueCave grid from the TileMap
     PCG::RogueCave cave(mInfo.mCaveWidth, mInfo.mCaveHeight);
-    std::vector<std::vector<int>>& gridIn = cave.getGrid();
+    std::vector<std::vector<int>> &gridIn = cave.getGrid();
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
         gridIn[cy][cx] = Cave::isWall(tileMap, cx, cy)
@@ -93,14 +92,14 @@ void Cave::runCellularAutomata(TileMap& tileMap) {
     }
 
     // run the cellular automata
-    for (const auto& gen : mParams.mGenerations) {
+    for (const auto &gen : mParams.mGenerations) {
       Util::IntRange b3(gen.b3_min, gen.b3_max);
       Util::IntRange b5(gen.b5_min, gen.b5_max);
       Util::IntRange s3(gen.s3_min, gen.s3_max);
       Util::IntRange s5(gen.s5_min, gen.s5_max);
       cave.addGeneration(b3, b5, s3, s5, gen.reps);
     }
-    std::vector<std::vector<int>>& gridOut = cave.generate();
+    std::vector<std::vector<int>> &gridOut = cave.generate();
 
     // Copy the RogueCave grid back to the TileMap
     LOG_DEBUG("-----GRID OUT-----");
@@ -117,7 +116,7 @@ void Cave::runCellularAutomata(TileMap& tileMap) {
   }
 }
 
-void Cave::fixUp(TileMap& tileMap) {
+void Cave::fixUp(TileMap &tileMap) {
   std::vector<Vector2i> walls;
   std::vector<Vector2i> floors;
   for (int lp = 0; lp < 10; ++lp) {
@@ -179,7 +178,7 @@ void Cave::fixUp(TileMap& tileMap) {
 }
 
 std::pair<Vector2iIntMap, IntVectorOfVector2iMap>
-Cave::findRooms(TileMap& tileMap) {
+Cave::findRooms(TileMap &tileMap) {
   Algo::DisjointSets<Vector2i> floors;
   static const std::vector<Vector2i> directions = {
       {0, 1}, {1, 0}, {0, -1}, {-1, 0}};
@@ -197,7 +196,7 @@ Cave::findRooms(TileMap& tileMap) {
   for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       if (isFloor(tileMap, cx, cy)) {
-        for (const Vector2i& dir : directions) {
+        for (const Vector2i &dir : directions) {
           int nx = cx + dir.x;
           int ny = cy + dir.y;
           if ((nx >= 0 && nx < mInfo.mCaveWidth) &&
@@ -234,7 +233,7 @@ Cave::findRooms(TileMap& tileMap) {
 }
 
 void Cave::joinRooms(
-    TileMap& tileMap,
+    TileMap &tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
   std::vector<Cave::BorderWall> borderWalls =
       detectBorderWalls(tileMap, floorMaps);
@@ -253,7 +252,7 @@ void Cave::joinRooms(
     roomIds.push_back(p.first);
   }
   std::vector<Cave::BorderWall> mst = findMST_Kruskal(borderWalls, roomIds);
-  for (auto& node : mst) {
+  for (auto &node : mst) {
     int wx = node.floor1.x + node.dir.x;
     int wy = node.floor1.y + node.dir.y;
     LOG_DEBUG_CONT("TUNNEL: " << wx << "," << wy << " dir: " << node.dir.x
@@ -284,7 +283,7 @@ void Cave::joinRooms(
 }
 
 std::vector<Cave::BorderWall> Cave::detectBorderWalls(
-    TileMap& tileMap,
+    TileMap &tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
   std::vector<BorderWall> borderWalls;
   Vector2iIntMap floorToRoomMap = floorMaps.first;
@@ -292,9 +291,9 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
 
   LOG_DEBUG("----DETECT BORDER WALLS----");
   LOG_DEBUG("ROOMS: " << roomsMap.size());
-  for (const auto& [roomID, tiles] : roomsMap) {
+  for (const auto &[roomID, tiles] : roomsMap) {
     LOG_DEBUG_CONT("Tiles: " << tiles.size());
-    for (const auto& tile : tiles) {
+    for (const auto &tile : tiles) {
       LOG_DEBUG_CONT(" " << tile.x << "," << tile.y);
     }
     LOG_DEBUG(" ID: " << roomID);
@@ -322,16 +321,16 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
   // non-deterministic wall detection order.
   std::vector<int> sortedRoomIds;
   sortedRoomIds.reserve(roomsMap.size());
-  for (const auto& pair : roomsMap) {
+  for (const auto &pair : roomsMap) {
     sortedRoomIds.push_back(pair.first);
   }
   std::sort(sortedRoomIds.begin(), sortedRoomIds.end());
 
   for (int roomID : sortedRoomIds) {
-    const auto& tiles = roomsMap[roomID];
+    const auto &tiles = roomsMap[roomID];
     checkedRooms.push_back(roomID);
-    for (const auto& tile : tiles) {
-      for (const auto& dir :
+    for (const auto &tile : tiles) {
+      for (const auto &dir :
            {Vector2i{-1, 0}, Vector2i{1, 0}, Vector2i{0, -1}, Vector2i{0, 1}}) {
         int cx = tile.x + dir.x;
         int cy = tile.y + dir.y;
@@ -385,7 +384,7 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
 }
 
 std::vector<Cave::BorderWall>
-Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
+Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
                       std::vector<int> roomIds) {
   std::vector<BorderWall> mst;
   Algo::DisjointSets<int> dsu;
@@ -398,7 +397,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
   // FIX: Use a fully deterministic comparator.
   // Previous comparator only used thickness, which is not unique.
   std::sort(borderWalls.begin(), borderWalls.end(),
-            [](const BorderWall& a, const BorderWall& b) {
+            [](const BorderWall &a, const BorderWall &b) {
               if (a.thickness != b.thickness)
                 return a.thickness < b.thickness;
               if (a.room1 != b.room1)
@@ -415,7 +414,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
             });
   LOG_INFO("=== findMST: " << borderWalls.size() << " rooms: " << numRooms);
 
-  for (const BorderWall& wall : borderWalls) {
+  for (const BorderWall &wall : borderWalls) {
     int setU = dsu.findSet(wall.room1);
     int setV = dsu.findSet(wall.room2);
     if (setU != setV) {
@@ -428,7 +427,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
   }
 
   LOG_INFO("DONE MST: " << mst.size());
-  for (auto& node : mst) {
+  for (auto &node : mst) {
     LOG_DEBUG("BORDER: r1 = " << node.room1 << " r2 = " << node.room2
                               << " thick = " << node.thickness
                               << " wall=" << node.dir.x << "," << node.dir.y);
@@ -436,15 +435,55 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
   return mst;
 }
 
-void Cave::smooth(TileMap& tileMap) {
+void Cave::smooth(TileMap &tileMap) {
   CaveSmoother smoother(tileMap, mInfo);
+
+  for (const auto &row : tileMap) {
+    for (const auto &cell : row) {
+      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+  int y = 0;
+  std::cout << std::endl;
+  for (const auto &row : tileMap) {
+    std::cout << std::setw(2) << y << "  ";
+    for (const auto &cell : row) {
+      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
+    }
+    ++y;
+    std::cout << std::endl;
+  }
+
+  std::cout << std::endl;
+  std::cout << std::endl;
   smoother.smooth();
+  std::cout << std::endl;
+  std::cout << std::endl;
+
+  for (int x = 0; x < tileMap[0].size(); ++x) {
+    std::cout << (x % 10);
+  }
+  std::cout << std::endl;
+
+  y = 0;
+  std::cout << std::endl;
+  for (const auto &row : tileMap) {
+    std::cout << std::setw(2) << y << "  ";
+    for (const auto &cell : row) {
+      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
+    }
+    ++y;
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
 }
 
-TileName Cave::getTile(const TileMap& tileMap, int cx, int cy) {
+TileName Cave::getTile(const TileMap &tileMap, int cx, int cy) {
   Vector2i mapPos = getMapPos(cx, cy);
-  if (mapPos.y >= 0 && mapPos.y < (int)tileMap.size() &&
-      mapPos.x >= 0 && mapPos.x < (int)tileMap[0].size()) {
+  if (mapPos.y >= 0 && mapPos.y < (int)tileMap.size() && mapPos.x >= 0 &&
+      mapPos.x < (int)tileMap[0].size()) {
     return static_cast<TileName>(tileMap[mapPos.y][mapPos.x]);
   }
   return IGNORE;
@@ -452,7 +491,7 @@ TileName Cave::getTile(const TileMap& tileMap, int cx, int cy) {
 
 Vector2i Cave::getMapPos(int cx, int cy) { return {1 + cx, 1 + cy}; }
 
-void Cave::setCell(TileMap& tileMap, int x, int y, int tile) {
+void Cave::setCell(TileMap &tileMap, int x, int y, int tile) {
   Vector2i mapPos = getMapPos(x, y);
   tileMap[mapPos.y][mapPos.x] = tile;
 }
@@ -469,131 +508,131 @@ int Cave::getAtlasIndex(int tile) {
   auto Idx = [](int col, int row) { return (row * ATLASWITDTH) + col; };
 
   switch (tile) {
-    case TileName::FLOOR:
-      return Idx(0, 7);
-    case TileName::WALL:
-      return Idx(1, 7);
+  case TileName::FLOOR:
+    return Idx(0, 7);
+  case TileName::WALL:
+    return Idx(1, 7);
 
-    case TileName::T45a:
-      return Idx(2, 6);
-    case TileName::T45b:
-      return Idx(3, 6);
-    case TileName::T45c:
-      return Idx(0, 6);
-    case TileName::T45d:
-      return Idx(1, 6);
+  case TileName::T45a:
+    return Idx(2, 6);
+  case TileName::T45b:
+    return Idx(3, 6);
+  case TileName::T45c:
+    return Idx(0, 6);
+  case TileName::T45d:
+    return Idx(1, 6);
 
-    case TileName::V60a1:
-      return Idx(2, 3);
-    case TileName::V60a2:
-      return Idx(2, 4);
-    case TileName::V60b1:
-      return Idx(1, 3);
-    case TileName::V60b2:
-      return Idx(1, 4);
-    case TileName::V60c1:
-      return Idx(3, 4);
-    case TileName::V60c2:
-      return Idx(3, 3);
-    case TileName::V60d1:
-      return Idx(0, 4);
-    case TileName::V60d2:
-      return Idx(0, 3);
+  case TileName::V60a1:
+    return Idx(2, 3);
+  case TileName::V60a2:
+    return Idx(2, 4);
+  case TileName::V60b1:
+    return Idx(1, 3);
+  case TileName::V60b2:
+    return Idx(1, 4);
+  case TileName::V60c1:
+    return Idx(3, 4);
+  case TileName::V60c2:
+    return Idx(3, 3);
+  case TileName::V60d1:
+    return Idx(0, 4);
+  case TileName::V60d2:
+    return Idx(0, 3);
 
-    case TileName::H30a1:
-      return Idx(2, 5);
-    case TileName::H30a2:
-      return Idx(3, 5);
-    case TileName::H30b1:
-      return Idx(7, 5);
-    case TileName::H30b2:
-      return Idx(6, 5);
-    case TileName::H30c1:
-      return Idx(1, 5);
-    case TileName::H30c2:
-      return Idx(0, 5);
-    case TileName::H30d1:
-      return Idx(4, 5);
-    case TileName::H30d2:
-      return Idx(5, 5);
+  case TileName::H30a1:
+    return Idx(2, 5);
+  case TileName::H30a2:
+    return Idx(3, 5);
+  case TileName::H30b1:
+    return Idx(7, 5);
+  case TileName::H30b2:
+    return Idx(6, 5);
+  case TileName::H30c1:
+    return Idx(1, 5);
+  case TileName::H30c2:
+    return Idx(0, 5);
+  case TileName::H30d1:
+    return Idx(4, 5);
+  case TileName::H30d2:
+    return Idx(5, 5);
 
-    case TileName::END_N:
-      return Idx(4, 6);
-    case TileName::END_S:
-      return Idx(6, 6);
-    case TileName::END_E:
-      return Idx(5, 6);
-    case TileName::END_W:
-      return Idx(7, 6);
+  case TileName::END_N:
+    return Idx(4, 6);
+  case TileName::END_S:
+    return Idx(6, 6);
+  case TileName::END_E:
+    return Idx(5, 6);
+  case TileName::END_W:
+    return Idx(7, 6);
 
-    case TileName::DEND_N:
-      return Idx(4, 7);
-    case TileName::DEND_E:
-      return Idx(5, 7);
-    case TileName::DEND_S:
-      return Idx(6, 7);
-    case TileName::DEND_W:
-      return Idx(7, 7);
+  case TileName::DEND_N:
+    return Idx(4, 7);
+  case TileName::DEND_E:
+    return Idx(5, 7);
+  case TileName::DEND_S:
+    return Idx(6, 7);
+  case TileName::DEND_W:
+    return Idx(7, 7);
 
-    case TileName::CORNR_A:
-      return Idx(4, 4);
-    case TileName::CORNR_B:
-      return Idx(5, 4);
-    case TileName::CORNR_C:
-      return Idx(6, 4);
-    case TileName::CORNR_D:
-      return Idx(7, 4);
+  case TileName::CORNR_A:
+    return Idx(4, 4);
+  case TileName::CORNR_B:
+    return Idx(5, 4);
+  case TileName::CORNR_C:
+    return Idx(6, 4);
+  case TileName::CORNR_D:
+    return Idx(7, 4);
 
-    case TileName::SINGLE:
-      return Idx(3, 7);
+  case TileName::SINGLE:
+    return Idx(3, 7);
 
-    case TileName::T45a2CT:
-      return Idx(2, 0);
-    case TileName::T45b2CT:
-      return Idx(3, 0);
-    case TileName::T45c2CT:
-      return Idx(3, 1);
-    case TileName::T45d2CT:
-      return Idx(2, 1);
+  case TileName::T45a2CT:
+    return Idx(2, 0);
+  case TileName::T45b2CT:
+    return Idx(3, 0);
+  case TileName::T45c2CT:
+    return Idx(3, 1);
+  case TileName::T45d2CT:
+    return Idx(2, 1);
 
-    case TileName::T45abCT:
-      return Idx(4, 2);
-    case TileName::T45adCT:
-      return Idx(4, 1);
-    case TileName::T45baCT:
-      return Idx(5, 2);
-    case TileName::T45bcCT:
-      return Idx(5, 1);
-    case TileName::T45cbCT:
-      return Idx(6, 1);
-    case TileName::T45cdCT:
-      return Idx(6, 2);
-    case TileName::T45daCT:
-      return Idx(7, 1);
-    case TileName::T45dcCT:
-      return Idx(7, 2);
+  case TileName::T45abCT:
+    return Idx(4, 2);
+  case TileName::T45adCT:
+    return Idx(4, 1);
+  case TileName::T45baCT:
+    return Idx(5, 2);
+  case TileName::T45bcCT:
+    return Idx(5, 1);
+  case TileName::T45cbCT:
+    return Idx(6, 1);
+  case TileName::T45cdCT:
+    return Idx(6, 2);
+  case TileName::T45daCT:
+    return Idx(7, 1);
+  case TileName::T45dcCT:
+    return Idx(7, 2);
 
-    case TileName::V60aCT:
-      return Idx(1, 2);
-    case TileName::V60bCT:
-      return Idx(0, 2);
-    case TileName::V60cCT:
-      return Idx(2, 2);
-    case TileName::V60dCT:
-      return Idx(3, 2);
+  case TileName::V60aCT:
+    return Idx(1, 2);
+  case TileName::V60bCT:
+    return Idx(0, 2);
+  case TileName::V60cCT:
+    return Idx(2, 2);
+  case TileName::V60dCT:
+    return Idx(3, 2);
 
-    case TileName::H30aCT:
-      return Idx(0, 1);
-    case TileName::H30bCT:
-      return Idx(1, 1);
-    case TileName::H30cCT:
-      return Idx(1, 0);
-    case TileName::H30dCT:
-      return Idx(0, 0);
+  case TileName::H30aCT:
+    return Idx(0, 1);
+  case TileName::H30bCT:
+    return Idx(1, 1);
+  case TileName::H30cCT:
+    return Idx(1, 0);
+  case TileName::H30dCT:
+    return Idx(0, 0);
 
-    default:
-      return Idx(0, 7);  // Default to FLOOR
+  default:
+    return Idx(0, 7); // Default to FLOOR
   }
 }
 
-}  // namespace Cave
+} // namespace Cave
