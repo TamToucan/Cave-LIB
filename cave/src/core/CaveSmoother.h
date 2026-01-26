@@ -12,7 +12,7 @@ namespace Cave {
 struct UpdateInfo;
 
 class CaveSmoother {
-  void removeDiagonalGaps(std::vector<std::vector<bool>>& smoothedGrid);
+  void removeDiagonalGaps();
   void smoothEdges(std::vector<std::vector<bool>>& smoothedGrid);
   void smoothCorners(std::vector<std::vector<bool>>& smoothedGrid);
   void smoothPoints();

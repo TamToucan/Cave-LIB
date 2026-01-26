@@ -572,11 +572,10 @@ void CaveSmoother::smooth() {
       std::vector<bool>(info.mCaveWidth + GRD_W + 1, false));
 
   if (info.mSmoothing) {
-    if (info.mRemoveDiagonals) {
-      removeDiagonalGaps(smoothedGrid);
-    }
-
     smoothEdges(smoothedGrid);
+    if (info.mRemoveDiagonals) {
+      removeDiagonalGaps();
+    }
 
     if (info.mSmoothCorners) {
       smoothCorners(smoothedGrid);
@@ -587,7 +586,7 @@ void CaveSmoother::smooth() {
   }
   // Need to remove diagonal gaps if no smoothing
   else {
-    removeDiagonalGaps(smoothedGrid);
+    removeDiagonalGaps();
   }
 }
 
@@ -770,7 +769,10 @@ void CaveSmoother::smoothPoints() {
   }
 }
 
-void CaveSmoother::removeDiagonalGaps(std::vector<std::vector<bool>>& smoothedGrid) {
+void CaveSmoother::removeDiagonalGaps() {
+  std::vector<std::vector<bool>> smoothedGrid(
+      info.mCaveHeight + GRD_H + 1,
+      std::vector<bool>(info.mCaveWidth + GRD_W + 1, false));
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
