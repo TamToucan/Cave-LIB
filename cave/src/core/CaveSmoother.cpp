@@ -789,7 +789,7 @@ void CaveSmoother::removeDiagonalGaps() {
 
   for (int y = 0; y < info.mCaveHeight; y++) {
     for (int x = 0; x < info.mCaveWidth; x++) {
-      inGrid[y + 1][x + 1] = Cave::isWall(tileMap, x, y) ? SOLID : FLOOR;
+      inGrid[y + 1][x + 1] = Cave::isEmpty(tileMap, x, y) ? FLOOR : SOLID;
     }
   }
   smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
