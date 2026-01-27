@@ -578,6 +578,7 @@ void CaveSmoother::smooth() {
     // So we smooth afterwards, however that creates blocky parts so smooth
     if (info.mRemoveDiagonals) {
       if (removeDiagonalGaps()) {
+        for (auto& row : smoothedGrid) std::fill(row.begin(), row.end(), false);
         smoothEdges(smoothedGrid);
       }
     }
