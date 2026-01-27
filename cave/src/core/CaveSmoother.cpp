@@ -573,8 +573,13 @@ void CaveSmoother::smooth() {
 
   if (info.mSmoothing) {
     smoothEdges(smoothedGrid);
+
+    // Diagonls can be created by smoothing when it adds Vert/Horz tiles
+    // So we smooth afterwards, however that creates blocky parts so smooth
     if (info.mRemoveDiagonals) {
-      removeDiagonalGaps();
+      if (removeDiagonalGaps()) {
+        smoothEdges(smoothedGrid);
+      }
     }
 
     if (info.mSmoothCorners) {
@@ -583,9 +588,7 @@ void CaveSmoother::smooth() {
     if (info.mSmoothPoints) {
       smoothPoints();
     }
-  }
-  // Need to remove diagonal gaps if no smoothing
-  else {
+  } else if (info.mRemoveDiagonals) {
     removeDiagonalGaps();
   }
 }
@@ -593,10 +596,11 @@ void CaveSmoother::smooth() {
 /////////////////////////////////////////////////////////////////////////////
 
 template <size_t SZ>
-void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
+bool CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
                                  std::vector<std::vector<int>>& inGrid,
                                  std::vector<std::vector<bool>>& smoothedGrid,
                                  bool updateInGrid) {
+  bool changed = false;
   //
   // Smooth the grid
   //
@@ -643,6 +647,7 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
               inGrid[pos1.y][pos1.x] = up.t1;
             }
             smoothedGrid[pos1.y][pos1.x] = true;
+            changed = true;
             // Check if there is a second (M) tile
             if (up.t2 != IGNORE) {
               LOG_DEBUG("      FOUND2 " << pos2.x << "," << pos2.y);
@@ -667,6 +672,7 @@ void CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
       }
     }
   }
+  return changed;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -769,10 +775,11 @@ void CaveSmoother::smoothPoints() {
   }
 }
 
-void CaveSmoother::removeDiagonalGaps() {
+bool CaveSmoother::removeDiagonalGaps() {
   std::vector<std::vector<bool>> smoothedGrid(
       info.mCaveHeight + GRD_H + 1,
       std::vector<bool>(info.mCaveWidth + GRD_W + 1, false));
+
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
@@ -792,7 +799,7 @@ void CaveSmoother::removeDiagonalGaps() {
       inGrid[y + 1][x + 1] = Cave::isEmpty(tileMap, x, y) ? FLOOR : SOLID;
     }
   }
-  smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
+  return smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
 }
 
 }  // namespace Cave
