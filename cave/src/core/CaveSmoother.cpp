@@ -574,14 +574,10 @@ void CaveSmoother::smooth() {
   if (info.mSmoothing) {
     smoothEdges(smoothedGrid);
 
-    // Diagonls can be created by smoothing when it adds Vert/Horz tiles
-    // So we smooth afterwards, however that creates blocky parts so smooth
-    if (info.mRemoveDiagonals) {
-      if (removeDiagonalGaps()) {
-        for (auto& row : smoothedGrid) std::fill(row.begin(), row.end(), false);
-        smoothEdges(smoothedGrid);
-      }
-    }
+    // Can't get smoothing and remove diagonals to work together
+    // Diagonls can be created by smoothing when it adds Vert/Horz tiles.
+    // Remove Diagonals then creates blocky parts.
+    // Tried we smooth afterwards but that breaks everything.
 
     if (info.mSmoothCorners) {
       smoothCorners(smoothedGrid);
@@ -776,7 +772,7 @@ void CaveSmoother::smoothPoints() {
   }
 }
 
-bool CaveSmoother::removeDiagonalGaps() {
+void CaveSmoother::removeDiagonalGaps() {
   std::vector<std::vector<bool>> smoothedGrid(
       info.mCaveHeight + GRD_H + 1,
       std::vector<bool>(info.mCaveWidth + GRD_W + 1, false));
@@ -800,7 +796,7 @@ bool CaveSmoother::removeDiagonalGaps() {
       inGrid[y + 1][x + 1] = Cave::isEmpty(tileMap, x, y) ? FLOOR : SOLID;
     }
   }
-  return smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
+  smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
 }
 
 }  // namespace Cave
