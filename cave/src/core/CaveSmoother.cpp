@@ -1,10 +1,3 @@
-/*
- * CaveSmoother.cpp
- *
- *  Created on: 7 Dec 2024
- *      Author: tam
- */
-
 #include "CaveSmoother.h"
 
 #include <iostream>
@@ -86,22 +79,49 @@ const unsigned char O = 'o';
 // Two tile updates (30 and 60 slopes)
 //
 unsigned char TileGrid60b[GRD_H][GRD_W] = {
-    {X, S, X, X}, {B, N, S, X}, {B, M, S, X}, {X, B, S, X}};
+    {X, S, X, X}, {B, N, S, X}, {B, M, S, X}, {B, B, S, X}};
 unsigned char TileGrid60d[GRD_H][GRD_W] = {
-    {S, B, X, X}, {S, M, B, X}, {S, N, B, X}, {X, S, X, X}};
+    {S, B, B, X}, {S, M, B, X}, {S, N, B, X}, {X, S, X, X}};
 unsigned char TileGrid60c[GRD_H][GRD_W] = {
-    {X, X, B, S}, {X, B, M, S}, {X, B, N, S}, {X, X, S, X}};
+    {X, B, B, S}, {X, B, M, S}, {X, B, N, S}, {X, X, S, X}};
 unsigned char TileGrid60a[GRD_H][GRD_W] = {
-    {X, S, X, X}, {S, N, B, X}, {S, M, B, X}, {S, B, X, X}};
+    {X, S, X, X}, {S, N, B, X}, {S, M, B, X}, {S, B, B, X}};
 
 unsigned char TileGrid30a[GRD_H][GRD_W] = {
-    {X, S, S, S}, {S, N, M, B}, {X, B, B, X}, {X, X, X, X}};
+    {X, S, S, S}, {S, N, M, B}, {X, B, B, B}, {X, X, X, X}};
 unsigned char TileGrid30d[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, B, B, X}, {S, N, M, B}, {X, S, S, S}};
+    {X, X, X, X}, {X, B, B, B}, {S, N, M, B}, {X, S, S, S}};
 unsigned char TileGrid30c[GRD_H][GRD_W] = {
-    {X, X, X, X}, {X, B, B, X}, {B, M, N, S}, {S, S, S, X}};
+    {X, X, X, X}, {B, B, B, X}, {B, M, N, S}, {S, S, S, X}};
 unsigned char TileGrid30b[GRD_H][GRD_W] = {
-    {X, X, X, X}, {S, S, S, X}, {B, M, N, S}, {X, B, B, X}};
+    {X, X, X, X}, {S, S, S, X}, {B, M, N, S}, {B, B, B, X}};
+
+// Smoothing can fill FLOOR tiles e.g. Horz/Vert "thin" end tile
+// So I now split the 30/60 into 2 the above checks for 3 blanks
+// and puts the 30/60. These check for SBB (or BBS) and instead
+// puts a blank where the N would be and a 45 for the M.
+//
+// Horz 2 tile, with 45 and FLOOR
+//
+unsigned char TileGridHFa[GRD_H][GRD_W] = {
+    {X, S, S, S}, {S, N, M, B}, {X, B, B, S}, {X, X, X, X}};
+unsigned char TileGridHFd[GRD_H][GRD_W] = {
+    {X, X, X, X}, {X, B, B, S}, {S, N, M, B}, {X, S, S, S}};
+unsigned char TileGridHFc[GRD_H][GRD_W] = {
+    {X, X, X, X}, {S, B, B, X}, {B, M, N, S}, {S, S, S, X}};
+unsigned char TileGridHFb[GRD_H][GRD_W] = {
+    {X, X, X, X}, {B, S, S, X}, {B, M, N, S}, {B, B, B, X}};
+
+// Vert 2 tile, with 45 and FLOOR
+unsigned char TileGridVFb[GRD_H][GRD_W] = {
+    {X, S, X, X}, {B, N, S, X}, {B, M, S, X}, {S, B, S, X}};
+unsigned char TileGridVFd[GRD_H][GRD_W] = {
+    {S, B, S, X}, {S, M, B, X}, {S, N, B, X}, {X, S, X, X}};
+unsigned char TileGridVFc[GRD_H][GRD_W] = {
+    {X, S, B, S}, {X, B, M, S}, {X, B, N, S}, {X, X, S, X}};
+unsigned char TileGridVFa[GRD_H][GRD_W] = {
+    {X, S, X, X}, {S, N, B, X}, {S, M, B, X}, {S, B, S, X}};
+
 //
 // Single 45 degree tile updates
 //
@@ -265,6 +285,19 @@ UpdateInfo updates[] = {
     {TileGrid60c, 0, 0, 0, 0, 0, 0, V60c1, V60c2},
     {TileGrid30d, 0, 0, 0, 0, 0, 0, H30d1, H30d2},
     {TileGrid60a, 0, 0, 0, 0, 0, 0, V60a1, V60a2},
+
+    // Two horz tiles (FLOOR and 45)
+    {TileGridHFa, 0, 0, 0, 0, 0, 0, T45a, FLOOR},
+    {TileGridHFb, 0, 0, 0, 0, 0, 0, T45b, FLOOR},
+    {TileGridHFc, 0, 0, 0, 0, 0, 0, T45c, FLOOR},
+    {TileGridHFd, 0, 0, 0, 0, 0, 0, T45d, FLOOR},
+
+    // Two vert tiles (FLOOR and 45)
+    {TileGridVFa, 0, 0, 0, 0, 0, 0, T45a, FLOOR},
+    {TileGridVFb, 0, 0, 0, 0, 0, 0, T45b, FLOOR},
+    {TileGridVFc, 0, 0, 0, 0, 0, 0, T45c, FLOOR},
+    {TileGridVFd, 0, 0, 0, 0, 0, 0, T45d, FLOOR},
+
     // single tiles
     {TileGrid45b, 0, 0, 0, 0, 0, 0, T45b, IGNORE},
     {TileGrid45c, 0, 0, 0, 0, 0, 0, T45c, IGNORE},
@@ -326,7 +359,7 @@ UpdateInfo diagonalUpdates[] = {
 typedef TileName TileName2x2[2][2];
 
 struct PointUpdate {
-  const TileName2x2* grids;
+  const TileName2x2 *grids;
   int numGrids;
   int xoff1;
   int yoff1;
@@ -336,156 +369,125 @@ struct PointUpdate {
 template <size_t NUM>
 constexpr PointUpdate make_point_update(const TileName2x2 (&grids)[NUM],
                                         int xoff1, int yoff1, TileName tile1) {
-  return {
-      grids,
-      static_cast<int>(NUM),
-      xoff1,
-      yoff1,
-      tile1};
+  return {grids, static_cast<int>(NUM), xoff1, yoff1, tile1};
 }
 
 static const TileName2x2 Grids_45a_2CUTS[] = {
-    {{IGNORE, T45d},
-     {T45b, T45a}},
+    {{IGNORE, T45d}, {T45b, T45a}},
 
-    {{IGNORE, H30d2},
-     {T45b, T45a}},
+    {{IGNORE, H30d2}, {T45b, T45a}},
 
-    {{IGNORE, T45d},
-     {V60b2, T45a}},
+    {{IGNORE, T45d}, {V60b2, T45a}},
 };
 
 static const TileName2x2 Grids_45b_2CUTS[] = {
-    {{T45c, IGNORE},
-     {T45b, T45a}},
+    {{T45c, IGNORE}, {T45b, T45a}},
 
-    {{H30c2, IGNORE},
-     {T45b, T45a}},
+    {{H30c2, IGNORE}, {T45b, T45a}},
 
-    {{T45c, IGNORE},
-     {T45b, V60a2}},
+    {{T45c, IGNORE}, {T45b, V60a2}},
 };
 
 static const TileName2x2 Grids_45c_2CUTS[] = {
-    {{T45c, T45d},
-     {T45b, IGNORE}},
+    {{T45c, T45d}, {T45b, IGNORE}},
 
-    {{T45c, T45d},
-     {H30b2, IGNORE}},
+    {{T45c, T45d}, {H30b2, IGNORE}},
 
-    {{T45c, V60d2},
-     {T45b, IGNORE}},
+    {{T45c, V60d2}, {T45b, IGNORE}},
 };
 
 static const TileName2x2 Grids_45d_2CUTS[] = {
-    {{T45c, T45d},
-     {IGNORE, T45a}},
+    {{T45c, T45d}, {IGNORE, T45a}},
 
-    {{V60c2, T45d},
-     {IGNORE, T45a}},
+    {{V60c2, T45d}, {IGNORE, T45a}},
 
-    {{T45c, T45d},
-     {IGNORE, H30a2}},
+    {{T45c, T45d}, {IGNORE, H30a2}},
 };
 
 // 2 corners (b and d) from T45a
 static const TileName2x2 Grids_45a_bCUT[] = {
-    {{IGNORE, T45d},
-     {IGNORE, T45a}},
+    {{IGNORE, T45d}, {IGNORE, T45a}},
 
-    {{IGNORE, H30d2},
-     {IGNORE, T45a}},
+    {{IGNORE, H30d2}, {IGNORE, T45a}},
 };
 static const TileName2x2 Grids_45a_dCUT[] = {
-    {{IGNORE, IGNORE},
-     {T45b, T45a}},
+    {{IGNORE, IGNORE}, {T45b, T45a}},
 
-    {{IGNORE, IGNORE},
-     {V60b2, T45a}},
+    {{IGNORE, IGNORE}, {V60b2, T45a}},
 };
 // 2 corners (a and c) from T45b
 static const TileName2x2 Grids_45b_aCUT[] = {
-    {{T45c, IGNORE},
-     {T45b, IGNORE}},
+    {{T45c, IGNORE}, {T45b, IGNORE}},
 
-    {{H30c2, IGNORE},
-     {T45b, IGNORE}},
+    {{H30c2, IGNORE}, {T45b, IGNORE}},
 };
 static const TileName2x2 Grids_45b_cCUT[] = {
-    {{IGNORE, IGNORE},
-     {T45b, T45a}},
+    {{IGNORE, IGNORE}, {T45b, T45a}},
 
-    {{IGNORE, IGNORE},
-     {T45b, V60a2}},
+    {{IGNORE, IGNORE}, {T45b, V60a2}},
 };
 // 2 corners (b and d) from T45c
 static const TileName2x2 Grids_45c_bCUT[] = {
-    {{T45c, T45d},
-     {IGNORE, IGNORE}},
+    {{T45c, T45d}, {IGNORE, IGNORE}},
 
-    {{T45c, V60d2},
-     {IGNORE, IGNORE}},
+    {{T45c, V60d2}, {IGNORE, IGNORE}},
 };
 static const TileName2x2 Grids_45c_dCUT[] = {
-    {{T45c, IGNORE},
-     {T45b, IGNORE}},
+    {{T45c, IGNORE}, {T45b, IGNORE}},
 
-    {{T45c, IGNORE},
-     {H30b2, IGNORE}},
+    {{T45c, IGNORE}, {H30b2, IGNORE}},
 };
 // 2 corners (a and c) from T45d
 static const TileName2x2 Grids_45d_aCUT[] = {
-    {{T45c, T45d},
-     {IGNORE, IGNORE}},
+    {{T45c, T45d}, {IGNORE, IGNORE}},
 
-    {{V60c2, T45d},
-     {IGNORE, IGNORE}},
+    {{V60c2, T45d}, {IGNORE, IGNORE}},
 };
 static const TileName2x2 Grids_45d_cCUT[] = {
-    {{IGNORE, T45d},
-     {IGNORE, T45a}},
+    {{IGNORE, T45d}, {IGNORE, T45a}},
 
-    {{IGNORE, T45d},
-     {IGNORE, H30a2}},
+    {{IGNORE, T45d}, {IGNORE, H30a2}},
 };
 
-static const PointUpdate Grid45a_2CUT = make_point_update(Grids_45a_2CUTS, 1, 1, T45a2CT);
-static const PointUpdate Grid45b_2CUT = make_point_update(Grids_45b_2CUTS, 0, 1, T45b2CT);
-static const PointUpdate Grid45c_2CUT = make_point_update(Grids_45c_2CUTS, 0, 0, T45c2CT);
-static const PointUpdate Grid45d_2CUT = make_point_update(Grids_45d_2CUTS, 1, 0, T45d2CT);
+static const PointUpdate Grid45a_2CUT =
+    make_point_update(Grids_45a_2CUTS, 1, 1, T45a2CT);
+static const PointUpdate Grid45b_2CUT =
+    make_point_update(Grids_45b_2CUTS, 0, 1, T45b2CT);
+static const PointUpdate Grid45c_2CUT =
+    make_point_update(Grids_45c_2CUTS, 0, 0, T45c2CT);
+static const PointUpdate Grid45d_2CUT =
+    make_point_update(Grids_45d_2CUTS, 1, 0, T45d2CT);
 
-static const PointUpdate Grid45a_bCUT = make_point_update(Grids_45a_bCUT, 1, 1, T45abCT);
-static const PointUpdate Grid45a_dCUT = make_point_update(Grids_45a_dCUT, 1, 1, T45adCT);
-static const PointUpdate Grid45b_aCUT = make_point_update(Grids_45b_aCUT, 0, 1, T45baCT);
-static const PointUpdate Grid45b_cCUT = make_point_update(Grids_45b_cCUT, 0, 1, T45bcCT);
-static const PointUpdate Grid45c_bCUT = make_point_update(Grids_45c_bCUT, 0, 0, T45cbCT);
-static const PointUpdate Grid45c_dCUT = make_point_update(Grids_45c_dCUT, 0, 0, T45cdCT);
-static const PointUpdate Grid45d_aCUT = make_point_update(Grids_45d_aCUT, 1, 0, T45daCT);
-static const PointUpdate Grid45d_cCUT = make_point_update(Grids_45d_cCUT, 1, 0, T45dcCT);
+static const PointUpdate Grid45a_bCUT =
+    make_point_update(Grids_45a_bCUT, 1, 1, T45abCT);
+static const PointUpdate Grid45a_dCUT =
+    make_point_update(Grids_45a_dCUT, 1, 1, T45adCT);
+static const PointUpdate Grid45b_aCUT =
+    make_point_update(Grids_45b_aCUT, 0, 1, T45baCT);
+static const PointUpdate Grid45b_cCUT =
+    make_point_update(Grids_45b_cCUT, 0, 1, T45bcCT);
+static const PointUpdate Grid45c_bCUT =
+    make_point_update(Grids_45c_bCUT, 0, 0, T45cbCT);
+static const PointUpdate Grid45c_dCUT =
+    make_point_update(Grids_45c_dCUT, 0, 0, T45cdCT);
+static const PointUpdate Grid45d_aCUT =
+    make_point_update(Grids_45d_aCUT, 1, 0, T45daCT);
+static const PointUpdate Grid45d_cCUT =
+    make_point_update(Grids_45d_cCUT, 1, 0, T45dcCT);
 
 static const PointUpdate pointUpdates[] = {
-    Grid45a_2CUT,
-    Grid45b_2CUT,
-    Grid45c_2CUT,
-    Grid45d_2CUT,
+    Grid45a_2CUT, Grid45b_2CUT, Grid45c_2CUT, Grid45d_2CUT,
 
-    Grid45a_bCUT,
-    Grid45a_dCUT,
-    Grid45b_aCUT,
-    Grid45b_cCUT,
-    Grid45c_bCUT,
-    Grid45c_dCUT,
-    Grid45d_aCUT,
-    Grid45d_cCUT,
+    Grid45a_bCUT, Grid45a_dCUT, Grid45b_aCUT, Grid45b_cCUT,
+    Grid45c_bCUT, Grid45c_dCUT, Grid45d_aCUT, Grid45d_cCUT,
 };
 
 //
 // Use the patterns to calc and modify the updates with mask,value and offsets
 //
-template <size_t SZ>
-void createUpdateInfos(UpdateInfo (&updateInfos)[SZ]) {
+template <size_t SZ> void createUpdateInfos(UpdateInfo (&updateInfos)[SZ]) {
   LOG_INFO("====================== SMOOTH CREATE UPDATES");
-  for (auto& u : updateInfos) {
+  for (auto &u : updateInfos) {
     const unsigned char (*grid)[GRD_W] = u.pattern;
     int l_mask = 0;
     int l_value = 0;
@@ -497,39 +499,39 @@ void createUpdateInfos(UpdateInfo (&updateInfos)[SZ]) {
     for (int r = 0; r < GRD_H; ++r) {
       for (int c = 0; c < GRD_W; ++c) {
         switch (grid[r][c]) {
-          case X:
-            l_mask |= 0 << s;
-            l_value |= 0 << s;
-            break;
-          case B:
-            l_mask |= 1 << s;
-            l_value |= 0 << s;
-            break;
-          case S:
-            l_mask |= 1 << s;
-            l_value |= 1 << s;
-            break;
-          case N:
-            l_mask |= 1 << s;
-            l_value |= 1 << s;
-            l_xOff1 = c;
-            l_yOff1 = r;
-            break;
-          case M:
-            l_mask |= 1 << s;
-            l_value |= 0 << s;
-            l_xOff2 = c;
-            l_yOff2 = r;
-            break;
-          case O:
-            l_mask |= 1 << s;
-            l_value |= 0 << s;
-            l_xOff1 = c;
-            l_yOff1 = r;
-            break;
-          default:
-            LOG_ABORT("Invalid tile: " << grid[r][c] << " at " << r << "," << c);
-            break;
+        case X:
+          l_mask |= 0 << s;
+          l_value |= 0 << s;
+          break;
+        case B:
+          l_mask |= 1 << s;
+          l_value |= 0 << s;
+          break;
+        case S:
+          l_mask |= 1 << s;
+          l_value |= 1 << s;
+          break;
+        case N:
+          l_mask |= 1 << s;
+          l_value |= 1 << s;
+          l_xOff1 = c;
+          l_yOff1 = r;
+          break;
+        case M:
+          l_mask |= 1 << s;
+          l_value |= 0 << s;
+          l_xOff2 = c;
+          l_yOff2 = r;
+          break;
+        case O:
+          l_mask |= 1 << s;
+          l_value |= 0 << s;
+          l_xOff1 = c;
+          l_yOff1 = r;
+          break;
+        default:
+          LOG_ABORT("Invalid tile: " << grid[r][c] << " at " << r << "," << c);
+          break;
         }
         --s;
       }
@@ -559,7 +561,7 @@ void createUpdateInfos() {
 
 //////////////////////////////////////////////////
 
-CaveSmoother::CaveSmoother(TileMap& tm, const CaveInfo& i)
+CaveSmoother::CaveSmoother(TileMap &tm, const CaveInfo &i)
     : info(i), tileMap(tm) {
   createUpdateInfos();
 }
@@ -573,11 +575,6 @@ void CaveSmoother::smooth() {
 
   if (info.mSmoothing) {
     smoothEdges(smoothedGrid);
-
-    // Can't get smoothing and remove diagonals to work together
-    // Diagonls can be created by smoothing when it adds Vert/Horz tiles.
-    // Remove Diagonals then creates blocky parts.
-    // Tried we smooth afterwards but that breaks everything.
 
     if (info.mSmoothCorners) {
       smoothCorners(smoothedGrid);
@@ -594,8 +591,8 @@ void CaveSmoother::smooth() {
 
 template <size_t SZ>
 bool CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
-                                 std::vector<std::vector<int>>& inGrid,
-                                 std::vector<std::vector<bool>>& smoothedGrid,
+                                 std::vector<std::vector<int>> &inGrid,
+                                 std::vector<std::vector<bool>> &smoothedGrid,
                                  bool updateInGrid) {
   bool changed = false;
   //
@@ -615,12 +612,13 @@ bool CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
           --shift;
         }
       }
-      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value << std::dec);
+      LOG_DEBUG("==FIND " << x << "," << y << " val:" << std::hex << value
+                          << std::dec);
 
       // Find the matching update(s) for that value
       //
       int idx = 0;
-      for (const auto& up : updateInfos) {
+      for (const auto &up : updateInfos) {
         LOG_DEBUG("  NEXT up:" << idx << " msk:" << std::hex << up.mask
                                << " val:" << up.value << " inVal:" << value
                                << " and:" << (value & up.mask) << std::dec);
@@ -679,7 +677,7 @@ bool CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
 // and find any matching update(s). For each match set the TileMapLayer
 // cell(s) for the 1 or 2 tiles for each update.
 //
-void CaveSmoother::smoothEdges(std::vector<std::vector<bool>>& smoothedGrid) {
+void CaveSmoother::smoothEdges(std::vector<std::vector<bool>> &smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
@@ -702,7 +700,7 @@ void CaveSmoother::smoothEdges(std::vector<std::vector<bool>>& smoothedGrid) {
   smoothTheGrid(updates, inGrid, smoothedGrid);
 }
 
-void CaveSmoother::smoothCorners(std::vector<std::vector<bool>>& smoothedGrid) {
+void CaveSmoother::smoothCorners(std::vector<std::vector<bool>> &smoothedGrid) {
   //
   // NOTE: So we can do a 4x4 with the top and left edge being the border
   // we shift the maze 0,0 to 1,1. We also make it wider to allow the
@@ -721,8 +719,13 @@ void CaveSmoother::smoothCorners(std::vector<std::vector<bool>>& smoothedGrid) {
     for (int x = 0; x < info.mCaveWidth; x++) {
       // Walls and End caps can make right angle corners we want to round
       // Thought I could do something clever with IGNORE vs FLOOR, but all
-      // the smoothed tiles are treated as not set, hence I pass in the smoothedGrid
-      bool isWall = Cave::isWall(tileMap, x, y) || Cave::isTile(tileMap, x, y, END_N) || Cave::isTile(tileMap, x, y, END_S) || Cave::isTile(tileMap, x, y, END_E) || Cave::isTile(tileMap, x, y, END_W);
+      // the smoothed tiles are treated as not set, hence I pass in the
+      // smoothedGrid
+      bool isWall = Cave::isWall(tileMap, x, y) ||
+                    Cave::isTile(tileMap, x, y, END_N) ||
+                    Cave::isTile(tileMap, x, y, END_S) ||
+                    Cave::isTile(tileMap, x, y, END_E) ||
+                    Cave::isTile(tileMap, x, y, END_W);
       inGrid[y + 1][x + 1] = isWall                         ? SOLID
                              : Cave::isFloor(tileMap, x, y) ? FLOOR
                                                             : IGNORE;
@@ -740,12 +743,14 @@ void CaveSmoother::smoothPoints() {
   for (int y = 0; y < info.mCaveHeight; y++) {
     for (int x = 0; x < info.mCaveWidth; x++) {
       int idx = 0;
-      for (const auto& up : pointUpdates) {
+      for (const auto &up : pointUpdates) {
         for (int i = 0; i < up.numGrids; ++i) {
-          if (smoothedGrid[y + up.yoff1][x + up.xoff1]) continue;
+          if (smoothedGrid[y + up.yoff1][x + up.xoff1])
+            continue;
           bool match = true;
-          LOG_DEBUG("SPNT: " << x << "," << y << " up:" << up.xoff1 << "," << up.yoff1 << " tile:" << up.tile1);
-          const auto* grid = up.grids[i];
+          LOG_DEBUG("SPNT: " << x << "," << y << " up:" << up.xoff1 << ","
+                             << up.yoff1 << " tile:" << up.tile1);
+          const auto *grid = up.grids[i];
           for (int yo = 0; yo < 2 && match; ++yo) {
             for (int xo = 0; xo < 2 && match; ++xo) {
               TileName wantTile = grid[yo][xo];
@@ -760,7 +765,8 @@ void CaveSmoother::smoothPoints() {
             }
           }
           if (match) {
-            LOG_DEBUG("...FULL MATCH set:" << x + 1 + up.xoff1 << "," << y + 1 + up.yoff1
+            LOG_DEBUG("...FULL MATCH set:" << x + 1 + up.xoff1 << ","
+                                           << y + 1 + up.yoff1
                                            << " tile:" << up.tile1);
             Cave::setCell(tileMap, x + up.xoff1, y + up.yoff1, up.tile1);
             smoothedGrid[y + up.yoff1][x + up.xoff1] = true;
@@ -799,4 +805,4 @@ void CaveSmoother::removeDiagonalGaps() {
   smoothTheGrid(diagonalUpdates, inGrid, smoothedGrid, true);
 }
 
-}  // namespace Cave
+} // namespace Cave
