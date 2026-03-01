@@ -7,11 +7,11 @@ struct Vector2i {
   int x = 0;
   int y = 0;
 
-  bool operator==(const Vector2i& other) const {
+  bool operator==(const Vector2i &other) const {
     return x == other.x && y == other.y;
   }
 
-  bool operator<(const Vector2i& other) const {
+  bool operator<(const Vector2i &other) const {
     if (x < other.x)
       return true;
     if (x > other.x)
@@ -21,21 +21,21 @@ struct Vector2i {
 };
 
 struct CaveInfo {
-  bool mRemoveDiagonals = false;  // NOTE: Can't be used with mSmoothing
-  bool mSmoothing = true;         // NOTE: Piority over mRemoveDiagonals
-  bool mSmoothCorners = true;     // NOTE: not used if mSmoothing is false
-  bool mSmoothPoints = true;      // NOTE: not used if mSmoothing is false
+  bool mRemoveDiagonals = false; // NOTE: Can't be used with mSmoothing
+  bool mSmoothing = true;        // NOTE: Piority over mRemoveDiagonals
+  bool mSmoothCorners = true;    // NOTE: not used if mSmoothing is false
+  bool mSmoothPoints = true;     // NOTE: not used if mSmoothing is false
   int mCaveWidth = 2;
   int mCaveHeight = 2;
-  int mBorderWidth = 1;
-  int mBorderHeight = 1;
-  int mCellWidth = 1;   // Only used for Godot GDCave
-  int mCellHeight = 1;  // Only used for Godot GDCave
-  int mStartCellX = 0;  // Not used yet
-  int mStartCellY = 0;  // Not used yet
+  int mBorderWidth = 1;  // Only used for Godot GDCave
+  int mBorderHeight = 1; // Only used for Godot GDCave
+  int mCellWidth = 1;    // Only used for Godot GDCave
+  int mCellHeight = 1;   // Only used for Godot GDCave
+  int mStartCellX = 0;   // Not used yet
+  int mStartCellY = 0;   // Not used yet
   int mLayer = 0;
 };
 
-}  // namespace Cave
+} // namespace Cave
 
 #endif

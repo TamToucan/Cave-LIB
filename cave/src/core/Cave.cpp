@@ -11,6 +11,7 @@
 #include "RogueCave.hpp"
 #include "SimplexNoise.h"
 #include "TileTypes.h"
+#include "VoronoiNoise.h"
 
 namespace Cave {
 
@@ -29,7 +30,19 @@ TileMap Cave::generate() {
                   std::vector<int>(mInfo.mCaveWidth + 2));
 
   initialise(tileMap);
-  runCellularAutomata(tileMap);
+
+  if (mParams.mCaveType == CaveType::VORONOI) {
+    TileMap voronoiGrid =
+        VoronoiNoise::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
+      for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
+        setCell(tileMap, cx, cy, voronoiGrid[cy][cx]);
+      }
+    }
+  } else {
+    runCellularAutomata(tileMap);
+  }
+
   fixUp(tileMap);
   auto floorMaps = findRooms(tileMap);
   joinRooms(tileMap, floorMaps);
@@ -58,25 +71,26 @@ void Cave::initialise(TileMap &tileMap) {
   //
   // Fill with random or perlin
   //
-  const double W = mInfo.mCaveWidth - 1 + mParams.mAmp;
-  const double H = mInfo.mCaveHeight - 1 + mParams.mAmp;
+  const double W = mInfo.mCaveWidth - 1 + mParams.cellular.mAmp;
+  const double H = mInfo.mCaveHeight - 1 + mParams.cellular.mAmp;
   double (*pf)(double, double, int) =
-      mParams.mPerlin ? &Algo::getSNoise2 : &Algo::getNoise2;
+      mParams.cellular.mPerlin ? &Algo::getSNoise2 : &Algo::getNoise2;
 
   for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
     for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
-      double x = cx / W * mParams.mFreq;
-      double y = cy / H * mParams.mFreq;
+      double x = cx / W * mParams.cellular.mFreq;
+      double y = cy / H * mParams.cellular.mFreq;
 
-      double n1 = mParams.mPerlin ? (*pf)(x, y, mParams.mOctaves)
-                                  : simple.getFloat() - mParams.mWallChance;
+      double n1 = mParams.cellular.mPerlin
+                      ? (*pf)(x, y, mParams.cellular.mOctaves)
+                      : simple.getFloat() - mParams.cellular.mWallChance;
       setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
     }
   }
 }
 
 void Cave::runCellularAutomata(TileMap &tileMap) {
-  if (!mParams.mGenerations.empty()) {
+  if (!mParams.cellular.mGenerations.empty()) {
     // initialise the RogueCave grid from the TileMap
     PCG::RogueCave cave(mInfo.mCaveWidth, mInfo.mCaveHeight);
     std::vector<std::vector<int>> &gridIn = cave.getGrid();
@@ -92,7 +106,7 @@ void Cave::runCellularAutomata(TileMap &tileMap) {
     }
 
     // run the cellular automata
-    for (const auto &gen : mParams.mGenerations) {
+    for (const auto &gen : mParams.cellular.mGenerations) {
       Util::IntRange b3(gen.b3_min, gen.b3_max);
       Util::IntRange b5(gen.b5_min, gen.b5_max);
       Util::IntRange s3(gen.s3_min, gen.s3_max);
@@ -232,6 +246,24 @@ Cave::findRooms(TileMap &tileMap) {
   return std::pair(grid_to_set, set_to_cells);
 }
 
+namespace {
+void carveCircle(TileMap &tileMap, int cx, int cy, float radius, int maxWidth,
+                 int maxHeight) {
+  int r = static_cast<int>(std::ceil(radius));
+  for (int y = cy - r; y <= cy + r; ++y) {
+    for (int x = cx - r; x <= cx + r; ++x) {
+      if (x >= 0 && x < maxWidth && y >= 0 && y < maxHeight) {
+        float dx = static_cast<float>(x - cx);
+        float dy = static_cast<float>(y - cy);
+        if (dx * dx + dy * dy <= radius * radius) {
+          Cave::setCell(tileMap, x, y, SOLID);
+        }
+      }
+    }
+  }
+}
+} // namespace
+
 void Cave::joinRooms(
     TileMap &tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
@@ -258,11 +290,93 @@ void Cave::joinRooms(
     LOG_DEBUG_CONT("TUNNEL: " << wx << "," << wy << " dir: " << node.dir.x
                               << "," << node.dir.y
                               << " thick: " << node.thickness);
-    for (int i = 0; i < node.thickness; ++i) {
-      setCell(tileMap, wx, wy, SOLID);
-      LOG_DEBUG_CONT("  " << wx << "," << wy);
-      wx += node.dir.x;
-      wy += node.dir.y;
+
+    if (node.thickness >= mParams.tunnel.mMinLengthForOrganic) {
+      // Perlin Organic Tunnel Logic
+      float orthoX = -static_cast<float>(node.dir.y);
+      float orthoY = static_cast<float>(node.dir.x);
+
+      // Normalize ortho if it's diagonal
+      float length = std::sqrt(orthoX * orthoX + orthoY * orthoY);
+      if (length > 0) {
+        orthoX /= length;
+        orthoY /= length;
+      }
+
+      int prevDrawX = -1;
+      int prevDrawY = -1;
+
+      for (int i = 0; i < node.thickness; ++i) {
+        float t = static_cast<float>(i);
+        float pct = (node.thickness > 1)
+                        ? t / static_cast<float>(node.thickness - 1)
+                        : 0.5f;
+        // Sine envelope forces the wiggle to 0 at the start and end of the
+        // tunnel locking the tunnel securely to the room doors.
+        float envelope = std::sin(pct * 3.14159265f);
+
+        // Wiggle Offset
+        float wiggleOffset =
+            Algo::getSNoise2(t * mParams.tunnel.mWiggleFrequency, mParams.seed,
+                             1) *
+            mParams.tunnel.mWiggleAmplitude * envelope;
+
+        // Pulse Radius
+        float radius =
+            1.0f +
+            std::abs(Algo::getSNoise2(t * mParams.tunnel.mWidthPulseFrequency,
+                                      mParams.seed + 1, 1)) *
+                mParams.tunnel.mWidthPulseAmplitude;
+
+        int drawX = static_cast<int>(std::round(wx + orthoX * wiggleOffset));
+        int drawY = static_cast<int>(std::round(wy + orthoY * wiggleOffset));
+
+        if (prevDrawX == -1) {
+          carveCircle(tileMap, drawX, drawY, radius, mInfo.mCaveWidth,
+                      mInfo.mCaveHeight);
+        } else {
+          // Bresenham's line algorithm ensures the step between i-1 and i has
+          // no gaps
+          int dx = std::abs(drawX - prevDrawX);
+          int dy = -std::abs(drawY - prevDrawY);
+          int sx = prevDrawX < drawX ? 1 : -1;
+          int sy = prevDrawY < drawY ? 1 : -1;
+          int err = dx + dy;
+          int currentX = prevDrawX;
+          int currentY = prevDrawY;
+
+          while (true) {
+            carveCircle(tileMap, currentX, currentY, radius, mInfo.mCaveWidth,
+                        mInfo.mCaveHeight);
+            if (currentX == drawX && currentY == drawY)
+              break;
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+              err += dy;
+              currentX += sx;
+            }
+            if (e2 <= dx) {
+              err += dx;
+              currentY += sy;
+            }
+          }
+        }
+
+        prevDrawX = drawX;
+        prevDrawY = drawY;
+
+        LOG_DEBUG_CONT("  " << drawX << "," << drawY);
+        wx += node.dir.x;
+        wy += node.dir.y;
+      }
+    } else {
+      // Standard Straight Tunnel
+      for (int i = 0; i < node.thickness; ++i) {
+        setCell(tileMap, wx, wy, SOLID);
+        LOG_DEBUG_CONT("  " << wx << "," << wy);
+        wx += node.dir.x;
+        wy += node.dir.y;
+      }
     }
     LOG_DEBUG("");
   }
