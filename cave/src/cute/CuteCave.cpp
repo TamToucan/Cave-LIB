@@ -94,11 +94,31 @@ CuteCave &CuteCave::setGenerations(std::vector<Cave::GenerationStep> gens) {
 }
 
 CuteCave &CuteCave::setVoronoiParams(float noiseScale, float warpStrength,
-                                     float voronoiWeight, float threshold) {
+                                     float voronoiWeight, float threshold,
+                                     bool invertVoronoi) {
   m_gen_params.voronoi.mNoiseScale = noiseScale;
   m_gen_params.voronoi.mWarpStrength = warpStrength;
   m_gen_params.voronoi.mVoronoiWeight = voronoiWeight;
   m_gen_params.voronoi.mThreshold = threshold;
+  m_gen_params.voronoi.mInvertVoronoi = invertVoronoi;
+  return *this;
+}
+
+CuteCave &CuteCave::setHeightmapParams(int octaves, float freq,
+                                       float waterLevelMin,
+                                       float waterLevelMax) {
+  m_gen_params.heightmap.mOctaves = octaves;
+  m_gen_params.heightmap.mFreq = freq;
+  m_gen_params.heightmap.mWaterLevelMin = waterLevelMin;
+  m_gen_params.heightmap.mWaterLevelMax = waterLevelMax;
+  return *this;
+}
+
+CuteCave &CuteCave::setDLAParams(int particleCount, int openAreaCount,
+                                 int openAreaRadius) {
+  m_gen_params.dla.mParticleCount = particleCount;
+  m_gen_params.dla.mOpenAreaCount = openAreaCount;
+  m_gen_params.dla.mOpenAreaRadius = openAreaRadius;
   return *this;
 }
 
@@ -112,6 +132,27 @@ CuteCave &CuteCave::setTunnelParams(int minLengthForOrganic,
   m_gen_params.tunnel.mWiggleFrequency = wiggleFrequency;
   m_gen_params.tunnel.mWidthPulseAmplitude = widthPulseAmplitude;
   m_gen_params.tunnel.mWidthPulseFrequency = widthPulseFrequency;
+  return *this;
+}
+
+CuteCave &CuteCave::setBspTectonicParams(int depth, int minRoomSize,
+                                         int roomPadding) {
+  m_gen_params.bspTectonic.mBspDepth = depth;
+  m_gen_params.bspTectonic.mMinRoomSize = minRoomSize;
+  m_gen_params.bspTectonic.mRoomPadding = roomPadding;
+  return *this;
+}
+
+CuteCave &
+CuteCave::setBspTectonicCaParams(int octaves, bool usePerlin, float wallChance,
+                                 float freq, float amp,
+                                 std::vector<Cave::GenerationStep> gens) {
+  m_gen_params.bspTectonic.mCaParams.mOctaves = octaves;
+  m_gen_params.bspTectonic.mCaParams.mPerlin = usePerlin;
+  m_gen_params.bspTectonic.mCaParams.mWallChance = wallChance;
+  m_gen_params.bspTectonic.mCaParams.mFreq = freq;
+  m_gen_params.bspTectonic.mCaParams.mAmp = amp;
+  m_gen_params.bspTectonic.mCaParams.mGenerations = gens;
   return *this;
 }
 

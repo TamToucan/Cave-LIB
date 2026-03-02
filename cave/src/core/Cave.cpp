@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <set>
 
+#include "CaveBspTectonic.h"
+#include "CaveDLA.h"
+#include "CaveHeightmap.h"
 #include "CaveSmoother.h"
 #include "Debug.h"
 #include "DisjointSets.h"
@@ -31,16 +34,34 @@ TileMap Cave::generate() {
 
   initialise(tileMap);
 
-  if (mParams.mCaveType == CaveType::VORONOI) {
-    TileMap voronoiGrid =
+  TileMap genMap;
+  switch (mParams.mCaveType) {
+  case CaveType::VORONOI:
+    genMap =
         VoronoiNoise::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::HEIGHTMAP:
+    genMap =
+        CaveHeightmap::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::DLA:
+    genMap = CaveDLA::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::BSP_TECTONIC:
+    genMap =
+        CaveBspTectonic::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  default:
+    runCellularAutomata(tileMap);
+    break;
+  }
+
+  if (!genMap.empty()) {
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
-        setCell(tileMap, cx, cy, voronoiGrid[cy][cx]);
+        setCell(tileMap, cx, cy, genMap[cy][cx]);
       }
     }
-  } else {
-    runCellularAutomata(tileMap);
   }
 
   fixUp(tileMap);

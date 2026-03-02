@@ -37,10 +37,19 @@ public:
   CuteCave &setRemoveDiagonals(bool doRemoveDiagonas);
   CuteCave &setGenerations(std::vector<Cave::GenerationStep> gens);
   CuteCave &setVoronoiParams(float noiseScale, float warpStrength,
-                             float voronoiWeight, float threshold);
+                             float voronoiWeight, float threshold,
+                             bool invertVoronoi);
+  CuteCave &setHeightmapParams(int octaves, float freq, float waterLevelMin,
+                               float waterLevelMax);
+  CuteCave &setDLAParams(int particleCount, int openAreaCount,
+                         int openAreaRadius);
   CuteCave &setTunnelParams(int minLengthForOrganic, float wiggleAmplitude,
                             float wiggleFrequency, float widthPulseAmplitude,
                             float widthPulseFrequency);
+  CuteCave &setBspTectonicParams(int depth, int minRoomSize, int roomPadding);
+  CuteCave &setBspTectonicCaParams(int octaves, bool usePerlin,
+                                   float wallChance, float freq, float amp,
+                                   std::vector<Cave::GenerationStep> gens);
 
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
 

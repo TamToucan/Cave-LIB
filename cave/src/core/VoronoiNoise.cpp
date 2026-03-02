@@ -128,6 +128,8 @@ TileMap VoronoiNoise::generate(int W, int H, const GenerationParams &params) {
   TileMap g(H, std::vector<int>(W, WALL));
   uint32_t seed = static_cast<uint32_t>(params.seed);
   const VoronoiParams &vp = params.voronoi;
+  const float vorWeight =
+      (vp.mInvertVoronoi) ? vp.mVoronoiWeight : -vp.mVoronoiWeight;
 
   auto seeds = generateSeeds(W, H, 6, 5, seed + 100);
 
@@ -145,8 +147,7 @@ TileMap VoronoiNoise::generate(int W, int H, const GenerationParams &params) {
 
       float v = voronoiMetric(x, y, seeds);
       v = std::min(v / 40.f, 1.f);
-
-      float combined = base - vp.mVoronoiWeight * v;
+      float combined = base + vorWeight * v;
 
       g[y][x] = (combined > vp.mThreshold) ? FLOOR : WALL;
     }
