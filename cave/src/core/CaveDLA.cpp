@@ -1,5 +1,5 @@
 #include "CaveDLA.h"
-#include "RandSimple.h"
+#include "RandUniversal.h"
 #include "TileTypes.h"
 #include <vector>
 
@@ -13,7 +13,7 @@ TileMap CaveDLA::generate(int width, int height,
   int centerY = height / 2;
   map[centerY][centerX] = FLOOR;
 
-  RNG::RandSimple simple(params.seed);
+  RNG::RandUniversal simple(params.seed);
 
   const int dx[] = {0, 0, -1, 1};
   const int dy[] = {-1, 1, 0, 0};

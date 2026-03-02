@@ -1,8 +1,8 @@
 #include "VoronoiNoise.h"
+#include "RandUniversal.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <random>
 
 namespace {
 // ------------------------------------------------------------
@@ -58,16 +58,15 @@ namespace Cave {
 std::vector<Vector2i> VoronoiNoise::generateSeeds(int W, int H, int cellsX,
                                                   int cellsY, uint32_t seed) {
   std::vector<Vector2i> seeds;
-  std::mt19937 rng(seed);
-  std::uniform_real_distribution<float> dist(0.f, 1.f);
+  RNG::RandUniversal rng(seed);
 
   float cellW = W / float(cellsX);
   float cellH = H / float(cellsY);
 
   for (int y = 0; y < cellsY; ++y) {
     for (int x = 0; x < cellsX; ++x) {
-      int sx = int((x + dist(rng)) * cellW);
-      int sy = int((y + dist(rng)) * cellH);
+      int sx = int((x + rng.getFloat()) * cellW);
+      int sy = int((y + rng.getFloat()) * cellH);
       seeds.push_back({sx, sy});
     }
   }

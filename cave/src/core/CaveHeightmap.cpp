@@ -1,5 +1,5 @@
 #include "CaveHeightmap.h"
-#include "RandSimple.h"
+#include "RandUniversal.h"
 #include "SimplexNoise.h"
 #include "TileTypes.h"
 
@@ -9,7 +9,7 @@ TileMap CaveHeightmap::generate(int width, int height,
                                 const GenerationParams &params) {
   TileMap outMap(height, std::vector<int>(width, WALL));
 
-  RNG::RandSimple simple(params.seed);
+  RNG::RandUniversal simple(params.seed);
 
   float rangeLevel =
       params.heightmap.mWaterLevelMax - params.heightmap.mWaterLevelMin;

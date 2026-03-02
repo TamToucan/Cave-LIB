@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "PerlinNoise.h"
-#include "RandSimple.h"
+#include "RandUniversal.h"
 #include "RogueCave.hpp"
 #include "SimplexNoise.h"
 
@@ -14,7 +14,7 @@ struct BspRect {
 };
 
 static void splitNode(std::vector<BspRect> &leaves, BspRect node, int depth,
-                      int maxDepth, int minSize, RNG::RandSimple &rng) {
+                      int maxDepth, int minSize, RNG::RandUniversal &rng) {
   if (depth >= maxDepth) {
     leaves.push_back(node);
     return;
@@ -57,7 +57,7 @@ TileMap CaveBspTectonic::generate(int width, int height,
                                   const GenerationParams &params) {
   TileMap tileMap(height, std::vector<int>(width, WALL));
 
-  RNG::RandSimple rng(params.seed);
+  RNG::RandUniversal rng(params.seed);
   const BspTectonicParams &bspParams = params.bspTectonic;
 
   std::vector<BspRect> leaves;
@@ -87,7 +87,7 @@ TileMap CaveBspTectonic::generate(int width, int height,
     // Use a slightly offset seed for each node to ensure variance when not
     // using perlin
     int offsetSeed = params.seed + (leaf.x * 13) + (leaf.y * 7);
-    RNG::RandSimple localRng(offsetSeed);
+    RNG::RandUniversal localRng(offsetSeed);
 
     for (int y = 0; y < rh; ++y) {
       for (int x = 0; x < rw; ++x) {
