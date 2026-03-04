@@ -52,46 +52,57 @@ float valueNoise(float x, float y, uint32_t seed) {
 namespace Cave {
 
 // ------------------------------------------------------------
-// Voronoi Seeds (stratified placement)
+// Worley Noise
 // ------------------------------------------------------------
 
-std::vector<Vector2i> VoronoiNoise::generateSeeds(int W, int H, int cellsX,
-                                                  int cellsY, uint32_t seed) {
-  std::vector<Vector2i> seeds;
-  RNG::RandUniversal rng(seed);
+struct Vector2f {
+  float x, y;
+};
 
-  float cellW = W / float(cellsX);
-  float cellH = H / float(cellsY);
-
-  for (int y = 0; y < cellsY; ++y) {
-    for (int x = 0; x < cellsX; ++x) {
-      int sx = int((x + rng.getFloat()) * cellW);
-      int sy = int((y + rng.getFloat()) * cellH);
-      seeds.push_back({sx, sy});
-    }
-  }
-  return seeds;
+// A 2D hash for Worley Noise feature points
+inline Vector2f hash22(Vector2f p) {
+  Vector2f q = {std::fmod(p.x * 127.1f + p.y * 311.7f, 289.0f),
+                std::fmod(p.x * 269.5f + p.y * 183.3f, 289.0f)};
+  return {std::abs(std::fmod(std::sin(q.x) * 43758.5453f, 1.0f)),
+          std::abs(std::fmod(std::sin(q.y) * 43758.5453f, 1.0f))};
 }
 
-// Compute Voronoi ridge metric: d2 - d1
-float VoronoiNoise::voronoiMetric(int x, int y,
-                                  const std::vector<Vector2i> &seeds) {
+// Compute Worley ridge metric (d2 - d1)
+float VoronoiNoise::worleyMetric(float px, float py, uint32_t seed) {
+  Vector2f p = {px, py};
+  Vector2f pi = {std::floor(p.x), std::floor(p.y)};
+  Vector2f pf = {p.x - pi.x, p.y - pi.y};
+
   float d1 = std::numeric_limits<float>::max();
   float d2 = std::numeric_limits<float>::max();
 
-  for (const auto &s : seeds) {
-    float dx = float(x - s.x);
-    float dy = float(y - s.y);
-    float d = dx * dx + dy * dy;
+  // Incorporate seed loosely by translating the grid
+  float sox = (seed & 0xFF) / 255.0f * 10.0f;
+  float soy = ((seed >> 8) & 0xFF) / 255.0f * 10.0f;
 
-    if (d < d1) {
-      d2 = d1;
-      d1 = d;
-    } else if (d < d2) {
-      d2 = d;
+  for (int y = -1; y <= 1; ++y) {
+    for (int x = -1; x <= 1; ++x) {
+      Vector2f neighbor = {static_cast<float>(x), static_cast<float>(y)};
+      Vector2f gridPt = {pi.x + neighbor.x + sox, pi.y + neighbor.y + soy};
+      Vector2f offset = hash22(gridPt);
+
+      Vector2f diff = {neighbor.x + offset.x - pf.x,
+                       neighbor.y + offset.y - pf.y};
+      float d = diff.x * diff.x + diff.y * diff.y;
+
+      if (d < d1) {
+        d2 = d1;
+        d1 = d;
+      } else if (d < d2) {
+        d2 = d;
+      }
     }
   }
-  return std::sqrt(d2) - std::sqrt(d1);
+
+  // Multiply by a factor so it behaves similarly numerically to the old metric
+  // The distance between adjacent cells in unit-cell Worley maxes around 1.0.
+  // We want the resulting (d2-d1) to range [0, 1] roughly.
+  return (std::sqrt(d2) - std::sqrt(d1));
 }
 
 // ------------------------------------------------------------
@@ -130,7 +141,11 @@ TileMap VoronoiNoise::generate(int W, int H, const GenerationParams &params) {
   const float vorWeight =
       (vp.mInvertVoronoi) ? vp.mVoronoiWeight : -vp.mVoronoiWeight;
 
-  auto seeds = generateSeeds(W, H, 6, 5, seed + 100);
+  // A magic multiplier to keep the visual scale roughly similar to before
+  // when scale=0.02. Worley cells are 1x1 in the noise space.
+  // Old logic had ~5x6 cells across 96x64 => ~1 cell per 16 pixels.
+  // So scale=0.02 * 16 ~ 0.32. We'll bake this factor in so 0.02 feels similar.
+  const float worleyScaleMult = 3.0f;
 
   for (int y = 0; y < H; y++) {
     for (int x = 0; x < W; x++) {
@@ -144,8 +159,14 @@ TileMap VoronoiNoise::generate(int W, int H, const GenerationParams &params) {
 
       float base = valueNoise(wx * vp.mNoiseScale, wy * vp.mNoiseScale, seed);
 
-      float v = voronoiMetric(x, y, seeds);
-      v = std::min(v / 40.f, 1.f);
+      // Evaluate continuous Worley noise using the warped, scaled coordinates
+      float wnx = wx * vp.mNoiseScale * worleyScaleMult;
+      float wny = wy * vp.mNoiseScale * worleyScaleMult;
+
+      float v = worleyMetric(wnx, wny, seed + 100);
+
+      // Worley v is naturally in [0, 1] rough range, clamp just in case
+      v = std::min(v, 1.0f);
       float combined = base + vorWeight * v;
 
       g[y][x] = (combined > vp.mThreshold) ? FLOOR : WALL;

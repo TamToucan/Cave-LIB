@@ -2,6 +2,7 @@
 #define CAVE_H
 
 #include <cstddef>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -12,13 +13,13 @@
 namespace Cave {
 
 struct Vector2Hash {
-  size_t operator()(const Vector2i& v) const {
+  size_t operator()(const Vector2i &v) const {
     return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y) << 1);
   }
 };
 
 struct Vector2Equal {
-  bool operator()(const Vector2i& lhs, const Vector2i& rhs) const {
+  bool operator()(const Vector2i &lhs, const Vector2i &rhs) const {
     return lhs.x == rhs.x && lhs.y == rhs.y;
   }
 };
@@ -31,8 +32,8 @@ class Cave {
   CaveInfo mInfo;
   GenerationParams mParams;
 
- public:
-  Cave(CaveInfo& info, const GenerationParams& params);
+public:
+  Cave(const CaveInfo &info, const GenerationParams &params);
   ~Cave();
 
   TileMap generate();
@@ -42,21 +43,26 @@ class Cave {
   static bool isEmpty(int tile) {
     return tile >= FLOOR_START && tile <= FLOOR_END;
   }
-  static bool isEmpty(const TileMap& tileMap, int cx, int cy) {
+  static bool isEmpty(const TileMap &tileMap, int cx, int cy) {
     return isEmpty(getTile(tileMap, cx, cy));
   }
 
   static Vector2i getAtlasCoords(int tile);
   static int getAtlasIndex(int tile);
 
- private:
-  void initialise(TileMap& tileMap);
-  void runCellularAutomata(TileMap& tileMap);
-  void fixUp(TileMap& tileMap);
-  std::pair<Vector2iIntMap, IntVectorOfVector2iMap> findRooms(TileMap& tileMap);
-  void joinRooms(TileMap& tileMap,
+  bool hasFloorSpace(const TileMap &tileMap) const;
+  std::string getParamsString() const;
+
+private:
+  void initialise(TileMap &tileMap);
+  void runCellularAutomata(TileMap &tileMap);
+  void fixUp(TileMap &tileMap);
+  std::pair<Vector2iIntMap, IntVectorOfVector2iMap> findRooms(TileMap &tileMap);
+  void joinRooms(TileMap &tileMap,
                  std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps);
-  void smooth(TileMap& tileMap);
+  void smooth(TileMap &tileMap);
+
+  static TileMap generateEmpty(int width, int height);
 
   struct BorderWall {
     Vector2i floor1;
@@ -67,28 +73,28 @@ class Cave {
     int thickness;
   };
   std::vector<BorderWall> detectBorderWalls(
-      TileMap& tileMap,
+      TileMap &tileMap,
       std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps);
   std::vector<BorderWall>
-  findMST_Kruskal(std::vector<Cave::BorderWall>& borderWalls,
+  findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
                   std::vector<int> roomIds);
 
- public:
+public:
   // NOTE: Return IGNORE if out of bounds
-  static TileName getTile(const TileMap& tileMap, int cx, int cy);
-  static bool isTile(const TileMap& tileMap, int cx, int cy, int tile) {
+  static TileName getTile(const TileMap &tileMap, int cx, int cy);
+  static bool isTile(const TileMap &tileMap, int cx, int cy, int tile) {
     return getTile(tileMap, cx, cy) == tile;
   }
-  static bool isWall(const TileMap& tileMap, int cx, int cy) {
+  static bool isWall(const TileMap &tileMap, int cx, int cy) {
     return isTile(tileMap, cx, cy, WALL);
   }
-  static bool isFloor(const TileMap& tileMap, int cx, int cy) {
+  static bool isFloor(const TileMap &tileMap, int cx, int cy) {
     return isTile(tileMap, cx, cy, FLOOR);
   }
-  static void setCell(TileMap& tileMap, int x, int y, int tile);
+  static void setCell(TileMap &tileMap, int x, int y, int tile);
   static Vector2i getMapPos(int x, int y);
 };
 
-}  // namespace Cave
+} // namespace Cave
 
 #endif

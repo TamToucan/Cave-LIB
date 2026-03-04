@@ -2,6 +2,7 @@
 #define CUTE_CAVE_HPP
 
 #include <cute.h>
+#include <string>
 
 #include "CaveInfo.h"
 #include "GenerationParams.h"
@@ -54,6 +55,9 @@ public:
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
 
   const Cave::TileMap make_cave(int seed);
+
+  bool hasFloorSpace(const Cave::TileMap &tileMap) const;
+  std::string getParamsString() const;
 
 private:
   Cave::CaveInfo m_info;

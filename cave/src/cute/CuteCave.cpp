@@ -233,4 +233,14 @@ const Cave::TileMap CuteCave::make_cave(int seed) {
   return cave.generate();
 }
 
+bool CuteCave::hasFloorSpace(const Cave::TileMap &tileMap) const {
+  Cave::Cave cave(m_info, m_gen_params);
+  return cave.hasFloorSpace(tileMap);
+}
+
+std::string CuteCave::getParamsString() const {
+  Cave::Cave cave(m_info, m_gen_params);
+  return cave.getParamsString();
+}
+
 } // namespace CuteCave

@@ -15,10 +15,7 @@ public:
   static TileMap generate(int W, int H, const GenerationParams &params);
 
 private:
-  static std::vector<Vector2i> generateSeeds(int W, int H, int cellsX,
-                                             int cellsY, uint32_t seed);
-  static float voronoiMetric(int x, int y, const std::vector<Vector2i> &seeds);
-
+  static float worleyMetric(float px, float py, uint32_t seed);
   static void smoothGrid(TileMap &g);
 };
 

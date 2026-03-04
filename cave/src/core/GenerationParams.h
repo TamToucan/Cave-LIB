@@ -5,7 +5,7 @@
 
 namespace Cave {
 
-enum class CaveType { CELLULAR, VORONOI, HEIGHTMAP, DLA, BSP_TECTONIC };
+enum class CaveType { CELLULAR, VORONOI, HEIGHTMAP, DLA, BSP_TECTONIC, EMPTY };
 
 struct GenerationStep {
   int b3_min, b3_max;

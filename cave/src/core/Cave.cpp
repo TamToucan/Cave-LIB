@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <set>
+#include <sstream>
+#include <string>
 
 #include "CaveBspTectonic.h"
 #include "CaveDLA.h"
@@ -18,7 +20,7 @@
 
 namespace Cave {
 
-Cave::Cave(CaveInfo &info, const GenerationParams &params)
+Cave::Cave(const CaveInfo &info, const GenerationParams &params)
     : mInfo(info), mParams(params) {}
 
 Cave::~Cave() {}
@@ -51,6 +53,9 @@ TileMap Cave::generate() {
     genMap =
         CaveBspTectonic::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
     break;
+  case CaveType::EMPTY:
+    genMap = generateEmpty(mInfo.mCaveWidth, mInfo.mCaveHeight);
+    break;
   default:
     runCellularAutomata(tileMap);
     break;
@@ -60,6 +65,17 @@ TileMap Cave::generate() {
     for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
       for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
         setCell(tileMap, cx, cy, genMap[cy][cx]);
+      }
+    }
+  }
+
+  if (!hasFloorSpace(tileMap)) {
+    LOG_WARNING("Cave generation produced no floor space!");
+    LOG_WARNING(getParamsString());
+    LOG_WARNING("Falling back to a simple rectangular room.");
+    for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
+      for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
+        setCell(tileMap, cx, cy, FLOOR);
       }
     }
   }
@@ -768,6 +784,84 @@ int Cave::getAtlasIndex(int tile) {
   default:
     return Idx(0, 7); // Default to FLOOR
   }
+}
+
+bool Cave::hasFloorSpace(const TileMap &tileMap) const {
+  for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
+    for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
+      if (isFloor(tileMap, cx, cy)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+std::string Cave::getParamsString() const {
+  std::stringstream ss;
+  ss << "Generation Parameters:\n";
+  ss << " - CaveType: " << static_cast<int>(mParams.mCaveType) << "\n";
+  ss << " - Seed: " << mParams.seed << "\n";
+
+  switch (mParams.mCaveType) {
+  case CaveType::CELLULAR:
+    ss << " CELLULAR\n";
+    ss << " - Octaves: " << mParams.cellular.mOctaves << "\n";
+    ss << " - Perlin: " << mParams.cellular.mPerlin << "\n";
+    ss << " - WallChance: " << mParams.cellular.mWallChance << "\n";
+    ss << " - Freq: " << mParams.cellular.mFreq << "\n";
+    ss << " - Amp: " << mParams.cellular.mAmp << "\n";
+    break;
+  case CaveType::VORONOI:
+    ss << " VORONOI\n";
+    ss << " - NoiseScale: " << mParams.voronoi.mNoiseScale << "\n";
+    ss << " - WarpStrength: " << mParams.voronoi.mWarpStrength << "\n";
+    ss << " - VoronoiWeight: " << mParams.voronoi.mVoronoiWeight << "\n";
+    ss << " - Threshold: " << mParams.voronoi.mThreshold << "\n";
+    ss << " - InvertVoronoi: " << mParams.voronoi.mInvertVoronoi << "\n";
+    break;
+  case CaveType::HEIGHTMAP:
+    ss << " HEIGHTMAP\n";
+    ss << " - Octaves: " << mParams.heightmap.mOctaves << "\n";
+    ss << " - Freq: " << mParams.heightmap.mFreq << "\n";
+    ss << " - WaterLevelMin: " << mParams.heightmap.mWaterLevelMin << "\n";
+    ss << " - WaterLevelMax: " << mParams.heightmap.mWaterLevelMax << "\n";
+    break;
+  case CaveType::DLA:
+    ss << " DLA\n";
+    ss << " - ParticleCount: " << mParams.dla.mParticleCount << "\n";
+    ss << " - OpenAreaCount: " << mParams.dla.mOpenAreaCount << "\n";
+    ss << " - OpenAreaRadius: " << mParams.dla.mOpenAreaRadius << "\n";
+    break;
+  case CaveType::BSP_TECTONIC:
+    ss << " BSP_TECTONIC\n";
+    ss << " - BspDepth: " << mParams.bspTectonic.mBspDepth << "\n";
+    ss << " - MinRoomSize: " << mParams.bspTectonic.mMinRoomSize << "\n";
+    ss << " - RoomPadding: " << mParams.bspTectonic.mRoomPadding << "\n";
+    break;
+  case CaveType::EMPTY:
+    ss << " EMPTY (Fallback)\n";
+    break;
+  }
+  return ss.str();
+}
+
+TileMap Cave::generateEmpty(int width, int height) {
+  TileMap tileMap(height, std::vector<int>(width, FLOOR));
+  int xgap = width / 8;
+  int ygap = height / 8;
+  for (int cy = 0; cy < height; cy += ygap) {
+    for (int cx = 0; cx < width; ++cx) {
+      tileMap[cy][cx] = WALL;
+    }
+  }
+  for (int cx = 0; cx < width; cx += xgap) {
+    for (int cy = 0; cy < height; ++cy) {
+      tileMap[cy][cx] = WALL;
+    }
+  }
+
+  return tileMap;
 }
 
 } // namespace Cave
