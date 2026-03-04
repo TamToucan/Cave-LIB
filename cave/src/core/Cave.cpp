@@ -841,4 +841,26 @@ std::string Cave::getParamsString() const {
     break;
   case CaveType::EMPTY:
     ss << " EMPTY\n";
+  }
+  return ss.str();
+}
+
+TileMap Cave::generateEmpty(int width, int height) {
+  TileMap tileMap(height, std::vector<int>(width, FLOOR));
+  int xgap = width / 8;
+  int ygap = height / 8;
+  for (int cy = 0; cy < height; cy += ygap) {
+    for (int cx = 0; cx < width; ++cx) {
+      tileMap[cy][cx] = WALL;
+    }
+  }
+  for (int cx = 0; cx < width; cx += xgap) {
+    for (int cy = 0; cy < height; ++cy) {
+      tileMap[cy][cx] = WALL;
+    }
+  }
+
+  return tileMap;
+}
+
 } // namespace Cave
