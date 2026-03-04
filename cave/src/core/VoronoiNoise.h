@@ -1,12 +1,9 @@
 #ifndef VORONOI_NOISE_H
 #define VORONOI_NOISE_H
 
-#include "CaveInfo.h"
+#include "GenerationParams.h"
 #include "TileTypes.h"
 #include <cstdint>
-#include <vector>
-
-#include "GenerationParams.h"
 
 namespace Cave {
 

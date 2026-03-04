@@ -1,10 +1,9 @@
-#include "Cave.h"
-
 #include <algorithm>
 #include <set>
-#include <sstream>
-#include <string>
+#include <sstream> // Moved from getParamsString() to top
+#include <string>  // Added as per instruction
 
+#include "Cave.h"
 #include "CaveBspTectonic.h"
 #include "CaveDLA.h"
 #include "CaveHeightmap.h"
@@ -34,6 +33,7 @@ TileMap Cave::generate() {
   TileMap tileMap(mInfo.mCaveHeight + 2,
                   std::vector<int>(mInfo.mCaveWidth + 2));
 
+  LOG_INFO(getParamsString());
   initialise(tileMap);
 
   TileMap genMap;
@@ -840,28 +840,5 @@ std::string Cave::getParamsString() const {
     ss << " - RoomPadding: " << mParams.bspTectonic.mRoomPadding << "\n";
     break;
   case CaveType::EMPTY:
-    ss << " EMPTY (Fallback)\n";
-    break;
-  }
-  return ss.str();
-}
-
-TileMap Cave::generateEmpty(int width, int height) {
-  TileMap tileMap(height, std::vector<int>(width, FLOOR));
-  int xgap = width / 8;
-  int ygap = height / 8;
-  for (int cy = 0; cy < height; cy += ygap) {
-    for (int cx = 0; cx < width; ++cx) {
-      tileMap[cy][cx] = WALL;
-    }
-  }
-  for (int cx = 0; cx < width; cx += xgap) {
-    for (int cy = 0; cy < height; ++cy) {
-      tileMap[cy][cx] = WALL;
-    }
-  }
-
-  return tileMap;
-}
-
+    ss << " EMPTY\n";
 } // namespace Cave

@@ -1,12 +1,15 @@
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "Cave.h"
 #include "CaveInfo.h"
+#include "Debug.h"
 #include "GenerationParams.h"
 #include "TileTypes.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+  SET_DEBUG("ALL");
   Cave::CaveInfo info;
   Cave::GenerationParams params;
 
@@ -15,7 +18,8 @@ int main() {
   params.cellular.mPerlin = false;
   params.cellular.mWallChance = 0.60;
   params.cellular.mFreq = 16.7;
-  params.mCaveType = Cave::CaveType::CELLULAR;
+  params.mCaveType = argc > 1 ? static_cast<Cave::CaveType>(std::stoi(argv[1]))
+                              : Cave::CaveType::CELLULAR;
 
   Cave::GenerationStep step;
   step.b3_min = 2; // need 2 neighbours
@@ -62,13 +66,21 @@ int main() {
   // Generate the cave
   Cave::TileMap tileMap = cave.generate();
 
-  // Print the tile map to the console
+  // Print the tile map to the console and file
+  std::ofstream outFile("GRID.txt");
+  if (!outFile) {
+    throw std::runtime_error("Could not open file for writing");
+  }
   for (int y = 0; y < tileMap.size(); ++y) {
     for (int x = 0; x < tileMap[0].size(); ++x) {
-      std::cout << ((tileMap[y][x] == Cave::FLOOR) ? ' ' : '#');
+      auto cell = tileMap[y][x];
+      char c = (cell == Cave::FLOOR) ? ' ' : '#';
+      std::cout << c;
+      outFile << c;
     }
     std::cout << std::endl;
+    outFile << std::endl;
   }
-
+  outFile.close();
   return 0;
 }
