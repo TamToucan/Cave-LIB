@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <set>
 #include <sstream> // Moved from getParamsString() to top
 #include <string>  // Added as per instruction
 
@@ -322,51 +321,73 @@ void Cave::joinRooms(
   }
   std::vector<Cave::BorderWall> mst = findMST_Kruskal(borderWalls, roomIds);
   for (auto &node : mst) {
-    int wx = node.floor1.x + node.dir.x;
-    int wy = node.floor1.y + node.dir.y;
-    LOG_DEBUG_CONT("TUNNEL: " << wx << "," << wy << " dir: " << node.dir.x
-                              << "," << node.dir.y
-                              << " thick: " << node.thickness);
+    int fx1 = node.floor1.x;
+    int fy1 = node.floor1.y;
+    int fx2 = node.floor2.x;
+    int fy2 = node.floor2.y;
+
+    float dx = static_cast<float>(fx2 - fx1);
+    float dy = static_cast<float>(fy2 - fy1);
+    float dist = std::sqrt(dx * dx + dy * dy);
+
+    LOG_DEBUG_CONT("TUNNEL: " << fx1 << "," << fy1 << " -> " << fx2 << ","
+                              << fy2 << " thick/dist: " << node.thickness);
+
+    if (dist <= 0)
+      continue; // safety
+
+    float stepX = dx / dist;
+    float stepY = dy / dist;
+
+    // We can use node.thickness or dist for loop count. Using dist ensures we
+    // cover it precisely.
+    int steps = static_cast<int>(std::round(dist));
 
     if (node.thickness >= mParams.tunnel.mMinLengthForOrganic) {
       // Perlin Organic Tunnel Logic
-      float orthoX = -static_cast<float>(node.dir.y);
-      float orthoY = static_cast<float>(node.dir.x);
-
-      // Normalize ortho if it's diagonal
-      float length = std::sqrt(orthoX * orthoX + orthoY * orthoY);
-      if (length > 0) {
-        orthoX /= length;
-        orthoY /= length;
-      }
+      float orthoX = -stepY;
+      float orthoY = stepX;
 
       int prevDrawX = -1;
       int prevDrawY = -1;
 
-      for (int i = 0; i < node.thickness; ++i) {
-        float t = static_cast<float>(i);
-        float pct = (node.thickness > 1)
-                        ? t / static_cast<float>(node.thickness - 1)
-                        : 0.5f;
+      // Create a unique seed for this specific tunnel
+      // We strictly modulo the integer seed BEFORE converting to float to
+      // prevent float precision collapse inside SimplexNoise which
+      // mathematically returns 0 for floats > ~10^8
+      int safeSeed = std::abs(mParams.seed) % 10000;
+      float tunnelSeed =
+          static_cast<float>(safeSeed) + (node.room1 * 7) + (node.room2 * 13);
+
+      for (int i = 0; i <= steps; ++i) {
+        float pct = (steps > 0) ? (static_cast<float>(i) / steps) : 0.5f;
+        float actualX = fx1 + (stepX * i);
+        float actualY = fy1 + (stepY * i);
+
         // Sine envelope forces the wiggle to 0 at the start and end of the
-        // tunnel locking the tunnel securely to the room doors.
+        // tunnel
         float envelope = std::sin(pct * 3.14159265f);
 
-        // Wiggle Offset
+        // Wiggle Offset (Using physical coordinates for coherence)
         float wiggleOffset =
-            Algo::getSNoise2(t * mParams.tunnel.mWiggleFrequency, mParams.seed,
-                             1) *
+            Algo::getSNoise2(
+                actualX * mParams.tunnel.mWiggleFrequency,
+                actualY * mParams.tunnel.mWiggleFrequency + tunnelSeed, 1) *
             mParams.tunnel.mWiggleAmplitude * envelope;
 
         // Pulse Radius
         float radius =
             1.0f +
-            std::abs(Algo::getSNoise2(t * mParams.tunnel.mWidthPulseFrequency,
-                                      mParams.seed + 1, 1)) *
+            std::abs(Algo::getSNoise2(
+                actualX * mParams.tunnel.mWidthPulseFrequency + 100.0f,
+                actualY * mParams.tunnel.mWidthPulseFrequency + tunnelSeed,
+                1)) *
                 mParams.tunnel.mWidthPulseAmplitude;
 
-        int drawX = static_cast<int>(std::round(wx + orthoX * wiggleOffset));
-        int drawY = static_cast<int>(std::round(wy + orthoY * wiggleOffset));
+        int drawX =
+            static_cast<int>(std::round(actualX + orthoX * wiggleOffset));
+        int drawY =
+            static_cast<int>(std::round(actualY + orthoY * wiggleOffset));
 
         if (prevDrawX == -1) {
           carveCircle(tileMap, drawX, drawY, radius, mInfo.mCaveWidth,
@@ -374,11 +395,11 @@ void Cave::joinRooms(
         } else {
           // Bresenham's line algorithm ensures the step between i-1 and i has
           // no gaps
-          int dx = std::abs(drawX - prevDrawX);
-          int dy = -std::abs(drawY - prevDrawY);
+          int bdx = std::abs(drawX - prevDrawX);
+          int bdy = -std::abs(drawY - prevDrawY);
           int sx = prevDrawX < drawX ? 1 : -1;
           int sy = prevDrawY < drawY ? 1 : -1;
-          int err = dx + dy;
+          int err = bdx + bdy;
           int currentX = prevDrawX;
           int currentY = prevDrawY;
 
@@ -388,12 +409,12 @@ void Cave::joinRooms(
             if (currentX == drawX && currentY == drawY)
               break;
             int e2 = 2 * err;
-            if (e2 >= dy) {
-              err += dy;
+            if (e2 >= bdy) {
+              err += bdy;
               currentX += sx;
             }
-            if (e2 <= dx) {
-              err += dx;
+            if (e2 <= bdx) {
+              err += bdx;
               currentY += sy;
             }
           }
@@ -403,16 +424,32 @@ void Cave::joinRooms(
         prevDrawY = drawY;
 
         LOG_DEBUG_CONT("  " << drawX << "," << drawY);
-        wx += node.dir.x;
-        wy += node.dir.y;
       }
     } else {
-      // Standard Straight Tunnel
-      for (int i = 0; i < node.thickness; ++i) {
-        setCell(tileMap, wx, wy, SOLID);
-        LOG_DEBUG_CONT("  " << wx << "," << wy);
-        wx += node.dir.x;
-        wy += node.dir.y;
+      // Standard Straight Tunnel Bresenham (from exact start to exact end)
+      int dx = std::abs(fx2 - fx1);
+      int dy = -std::abs(fy2 - fy1);
+      int sx = fx1 < fx2 ? 1 : -1;
+      int sy = fy1 < fy2 ? 1 : -1;
+      int err = dx + dy;
+
+      int currentX = fx1;
+      int currentY = fy1;
+
+      while (true) {
+        setCell(tileMap, currentX, currentY, SOLID);
+        LOG_DEBUG_CONT("  " << currentX << "," << currentY);
+        if (currentX == fx2 && currentY == fy2)
+          break;
+        int e2 = 2 * err;
+        if (e2 >= dy) {
+          err += dy;
+          currentX += sx;
+        }
+        if (e2 <= dx) {
+          err += dx;
+          currentY += sy;
+        }
       }
     }
     LOG_DEBUG("");
@@ -437,100 +474,93 @@ std::vector<Cave::BorderWall> Cave::detectBorderWalls(
     TileMap &tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
   std::vector<BorderWall> borderWalls;
-  Vector2iIntMap floorToRoomMap = floorMaps.first;
   IntVectorOfVector2iMap roomsMap = floorMaps.second;
 
-  LOG_DEBUG("----DETECT BORDER WALLS----");
-  LOG_DEBUG("ROOMS: " << roomsMap.size());
-  for (const auto &[roomID, tiles] : roomsMap) {
-    LOG_DEBUG_CONT("Tiles: " << tiles.size());
-    for (const auto &tile : tiles) {
-      LOG_DEBUG_CONT(" " << tile.x << "," << tile.y);
-    }
-    LOG_DEBUG(" ID: " << roomID);
-  }
+  LOG_DEBUG("----DETECT BORDER WALLS (EUCLIDEAN)----");
 
-  // EVERYTHING BEFORE HERE IS THE SAME
-  // (the roomsMap is a map and is different order, but same content)
-  // Hmmmmmm, maybe try sorting
-  // But delete everything between DETECT and JOIN then sort and compare (ignore
-  // space)
-  //   WORK: 10003=> CHECK: xy:-1,10 thick:4 floor:0
-  //   FAIL: 10003=> CHECK: xy:-2,10 thick:5 floor:0
-  // also this appears
-  //   WORK: 1013==> ADJROOM: xy:16, 1 tile : 12, 1 r: 38 r2: 276
-  //   WORK: 1013=> BWALL: xy:16,1 tile: 12,1 r1: 38 r2: 276 thick: 3 wallDir:
-  //   1,0
-  // then fail gets
-  //   FAIL: 1015==> ADJROOM: xy:12,1 tile: 16,1 r: 276 r2: 38
-  //   FAIL: 1015=> BWALL: xy:12,1 tile: 16,1 r1: 38 r2: 276 thick: 3 wallDir:
-  //   -1,0 FAIL: 1015=> CHECK: xy:12,1 thick:3 floor:1
-  //
-  std::vector<int> checkedRooms;
-  // FIX: Iterate over rooms in a deterministic order (sorted by roomID)
-  // The original iteration over `roomsMap` (unordered_map) caused
-  // non-deterministic wall detection order.
-  std::vector<int> sortedRoomIds;
-  sortedRoomIds.reserve(roomsMap.size());
+  // Sort room IDs for deterministic iteration
+  std::vector<int> roomIds;
+  roomIds.reserve(roomsMap.size());
   for (const auto &pair : roomsMap) {
-    sortedRoomIds.push_back(pair.first);
+    roomIds.push_back(pair.first);
   }
-  std::sort(sortedRoomIds.begin(), sortedRoomIds.end());
+  std::sort(roomIds.begin(), roomIds.end());
 
-  for (int roomID : sortedRoomIds) {
-    const auto &tiles = roomsMap[roomID];
-    checkedRooms.push_back(roomID);
-    for (const auto &tile : tiles) {
-      for (const auto &dir :
-           {Vector2i{-1, 0}, Vector2i{1, 0}, Vector2i{0, -1}, Vector2i{0, 1}}) {
-        int cx = tile.x + dir.x;
-        int cy = tile.y + dir.y;
-        unsigned long id = cy * 1000 + cx;
-        LOG_DEBUG(id << " CHECK: xy:" << cx << "," << cy << " wall:"
-                     << isWall(tileMap, cx, cy) << "(tile:" << tile.x << ","
-                     << tile.y << " dir:" << dir.x << "," << dir.y << ")");
-        if (isWall(tileMap, cx, cy)) {
-          std::set<int> adjacentRooms;
-          adjacentRooms.insert(roomID);
-
-          int thickness = 0;
-          while (isWall(tileMap, cx, cy)) {
-            cx += dir.x;
-            cy += dir.y;
-            thickness++;
+  // Cache Boundary Floors for each Room
+  // Boundary Floor = a FLOOR tile that has at least one adjacent WALL (so it's
+  // on the edge of the room)
+  std::unordered_map<int, std::vector<Vector2i>> roomBoundaries;
+  for (int roomID : roomIds) {
+    for (const auto &tile : roomsMap[roomID]) {
+      // Check 8-way neighbors for walls or out-of-bounds
+      bool isBoundary = false;
+      for (int dy = -1; dy <= 1; ++dy) {
+        for (int dx = -1; dx <= 1; ++dx) {
+          if (dx == 0 && dy == 0)
+            continue;
+          int nx = tile.x + dx;
+          int ny = tile.y + dy;
+          if (isWall(tileMap, nx, ny)) {
+            isBoundary = true;
+            break;
           }
+        }
+        if (isBoundary)
+          break;
+      }
 
-          LOG_DEBUG(id << "=> CHECK: xy:" << cx << "," << cy << " thick:"
-                       << thickness << " floor:" << isFloor(tileMap, cx, cy));
-          if (isFloor(tileMap, cx, cy)) {
-            auto it = floorToRoomMap.find({cx, cy});
-            if (it != floorToRoomMap.end()) {
-              int otherRoomID = it->second;
-              if (std::find(checkedRooms.begin(), checkedRooms.end(),
-                            otherRoomID) == checkedRooms.end()) {
-                LOG_DEBUG(id << "==> ADJROOM: xy:" << cx << "," << cy
-                             << " tile: " << tile.x << "," << tile.y
-                             << " r: " << roomID << " r2: " << otherRoomID);
-                adjacentRooms.insert(otherRoomID);
-              }
-            }
-          }
+      if (isBoundary) {
+        roomBoundaries[roomID].push_back(tile);
+      }
+    }
+    LOG_DEBUG("Room " << roomID << " has " << roomBoundaries[roomID].size()
+                      << " boundary tiles.");
+  }
 
-          if (adjacentRooms.size() == 2) {
-            auto it = adjacentRooms.begin();
-            int room1 = *it++;
-            int room2 = *it;
-            LOG_DEBUG(id << "=> BWALL: xy:" << cx << "," << cy << " tile: "
-                         << tile.x << "," << tile.y << " r1: " << room1
-                         << " r2: " << room2 << " thick: " << thickness
-                         << " wallDir: " << dir.x << "," << dir.y);
-            borderWalls.push_back(
-                {tile, {cx, cy}, dir, room1, room2, thickness});
+  // Find the shortest straight line connection between every pair of rooms
+  for (size_t i = 0; i < roomIds.size(); ++i) {
+    for (size_t j = i + 1; j < roomIds.size(); ++j) {
+      int roomA = roomIds[i];
+      int roomB = roomIds[j];
+
+      const auto &boundsA = roomBoundaries[roomA];
+      const auto &boundsB = roomBoundaries[roomB];
+
+      if (boundsA.empty() || boundsB.empty())
+        continue;
+
+      float minDistanceSq = std::numeric_limits<float>::max();
+      Vector2i bestA = {0, 0};
+      Vector2i bestB = {0, 0};
+
+      for (const auto &a : boundsA) {
+        for (const auto &b : boundsB) {
+          float dx = static_cast<float>(a.x - b.x);
+          float dy = static_cast<float>(a.y - b.y);
+          float distSq = (dx * dx) + (dy * dy);
+
+          if (distSq < minDistanceSq) {
+            minDistanceSq = distSq;
+            bestA = a;
+            bestB = b;
           }
         }
       }
+
+      BorderWall wall;
+      wall.floor1 = bestA;
+      wall.floor2 = bestB;
+      // We don't use dir explicitly anymore for drawing, but we can set it to
+      // the nominal sign vector just so the Kruskal tie-breaker has some data.
+      wall.dir = {(bestB.x > bestA.x) ? 1 : ((bestB.x < bestA.x) ? -1 : 0),
+                  (bestB.y > bestA.y) ? 1 : ((bestB.y < bestA.y) ? -1 : 0)};
+      wall.room1 = roomA;
+      wall.room2 = roomB;
+      wall.thickness = static_cast<int>(std::round(std::sqrt(minDistanceSq)));
+      borderWalls.push_back(wall);
     }
   }
+
   return borderWalls;
 }
 
