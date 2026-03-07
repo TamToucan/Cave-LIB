@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <set>
 #include <sstream> // Moved from getParamsString() to top
 #include <string>  // Added as per instruction
+#include <unordered_map>
 
 #include "Cave.h"
 #include "CaveBspTectonic.h"
@@ -11,6 +13,7 @@
 #include "DisjointSets.h"
 #include "PerlinNoise.h"
 #include "RandSimple.h"
+#include "RandUniversal.h" // Added as per instruction
 #include "RogueCave.hpp"
 #include "SimplexNoise.h"
 #include "TileTypes.h"
@@ -300,6 +303,117 @@ void carveCircle(TileMap &tileMap, int cx, int cy, float radius, int maxWidth,
 }
 } // namespace
 
+void Cave::drawTunnel(TileMap &tileMap, const BorderWall &node) {
+  int fx1 = node.floor1.x;
+  int fy1 = node.floor1.y;
+  int fx2 = node.floor2.x;
+  int fy2 = node.floor2.y;
+
+  float dx = static_cast<float>(fx2 - fx1);
+  float dy = static_cast<float>(fy2 - fy1);
+  float dist = std::sqrt(dx * dx + dy * dy);
+
+  if (dist <= 0)
+    return; // safety
+
+  float stepX = dx / dist;
+  float stepY = dy / dist;
+  int steps = static_cast<int>(std::round(dist));
+
+  if (node.thickness >= mParams.tunnel.mMinLengthForOrganic) {
+    // Perlin Organic Tunnel Logic
+    float orthoX = -stepY;
+    float orthoY = stepX;
+    int prevDrawX = -1;
+    int prevDrawY = -1;
+
+    // Create a unique seed for this specific tunnel
+    // We strictly modulo the integer seed BEFORE converting to float to
+    // prevent float precision collapse inside SimplexNoise which
+    // mathematically returns 0 for floats > ~10^8
+    int safeSeed = std::abs(mParams.seed) % 10000;
+    float tunnelSeed =
+        static_cast<float>(safeSeed) + (node.room1 * 7) + (node.room2 * 13);
+
+    for (int i = 0; i <= steps; ++i) {
+      float pct = (steps > 0) ? (static_cast<float>(i) / steps) : 0.5f;
+      float actualX = fx1 + (stepX * i);
+      float actualY = fy1 + (stepY * i);
+
+      float envelope = std::sin(pct * 3.14159265f);
+
+      float wiggleOffset =
+          Algo::getSNoise2(
+              actualX * mParams.tunnel.mWiggleFrequency,
+              actualY * mParams.tunnel.mWiggleFrequency + tunnelSeed, 1) *
+          mParams.tunnel.mWiggleAmplitude * envelope;
+
+      float radius =
+          1.0f +
+          std::abs(Algo::getSNoise2(
+              actualX * mParams.tunnel.mWidthPulseFrequency + 100.0f,
+              actualY * mParams.tunnel.mWidthPulseFrequency + tunnelSeed, 1)) *
+              mParams.tunnel.mWidthPulseAmplitude;
+
+      int drawX = static_cast<int>(std::round(actualX + orthoX * wiggleOffset));
+      int drawY = static_cast<int>(std::round(actualY + orthoY * wiggleOffset));
+
+      if (prevDrawX == -1) {
+        carveCircle(tileMap, drawX, drawY, radius, mInfo.mCaveWidth,
+                    mInfo.mCaveHeight);
+      } else {
+        int bdx = std::abs(drawX - prevDrawX);
+        int bdy = -std::abs(drawY - prevDrawY);
+        int sx = prevDrawX < drawX ? 1 : -1;
+        int sy = prevDrawY < drawY ? 1 : -1;
+        int err = bdx + bdy;
+        int currentX = prevDrawX;
+        int currentY = prevDrawY;
+        while (true) {
+          carveCircle(tileMap, currentX, currentY, radius, mInfo.mCaveWidth,
+                      mInfo.mCaveHeight);
+          if (currentX == drawX && currentY == drawY)
+            break;
+          int e2 = 2 * err;
+          if (e2 >= bdy) {
+            err += bdy;
+            currentX += sx;
+          }
+          if (e2 <= bdx) {
+            err += bdx;
+            currentY += sy;
+          }
+        }
+      }
+      prevDrawX = drawX;
+      prevDrawY = drawY;
+    }
+  } else {
+    // Standard Straight Tunnel via Bresenham
+    int idx = std::abs(fx2 - fx1);
+    int idy = -std::abs(fy2 - fy1);
+    int sx = fx1 < fx2 ? 1 : -1;
+    int sy = fy1 < fy2 ? 1 : -1;
+    int err = idx + idy;
+    int currentX = fx1;
+    int currentY = fy1;
+    while (true) {
+      setCell(tileMap, currentX, currentY, SOLID);
+      if (currentX == fx2 && currentY == fy2)
+        break;
+      int e2 = 2 * err;
+      if (e2 >= idy) {
+        err += idy;
+        currentX += sx;
+      }
+      if (e2 <= idx) {
+        err += idx;
+        currentY += sy;
+      }
+    }
+  }
+}
+
 void Cave::joinRooms(
     TileMap &tileMap,
     std::pair<Vector2iIntMap, IntVectorOfVector2iMap> floorMaps) {
@@ -321,138 +435,67 @@ void Cave::joinRooms(
   }
   std::vector<Cave::BorderWall> mst = findMST_Kruskal(borderWalls, roomIds);
   for (auto &node : mst) {
-    int fx1 = node.floor1.x;
-    int fy1 = node.floor1.y;
-    int fx2 = node.floor2.x;
-    int fy2 = node.floor2.y;
+    LOG_DEBUG_CONT("TUNNEL: " << node.floor1.x << "," << node.floor1.y << " -> "
+                              << node.floor2.x << "," << node.floor2.y
+                              << " thick/dist: " << node.thickness);
+    drawTunnel(tileMap, node);
+    LOG_DEBUG("");
+  }
 
-    float dx = static_cast<float>(fx2 - fx1);
-    float dy = static_cast<float>(fy2 - fy1);
-    float dist = std::sqrt(dx * dx + dy * dy);
+  // --- Extra Connections (non-MST optional loops) ---
+  if (mParams.tunnel.mExtraConnections > 0) {
+    // Build a set of room pairs already connected by the MST
+    std::set<std::pair<int, int>> mstPairs;
+    for (const auto &node : mst) {
+      mstPairs.insert(
+          {std::min(node.room1, node.room2), std::max(node.room1, node.room2)});
+    }
 
-    LOG_DEBUG_CONT("TUNNEL: " << fx1 << "," << fy1 << " -> " << fx2 << ","
-                              << fy2 << " thick/dist: " << node.thickness);
-
-    if (dist <= 0)
-      continue; // safety
-
-    float stepX = dx / dist;
-    float stepY = dy / dist;
-
-    // We can use node.thickness or dist for loop count. Using dist ensures we
-    // cover it precisely.
-    int steps = static_cast<int>(std::round(dist));
-
-    if (node.thickness >= mParams.tunnel.mMinLengthForOrganic) {
-      // Perlin Organic Tunnel Logic
-      float orthoX = -stepY;
-      float orthoY = stepX;
-
-      int prevDrawX = -1;
-      int prevDrawY = -1;
-
-      // Create a unique seed for this specific tunnel
-      // We strictly modulo the integer seed BEFORE converting to float to
-      // prevent float precision collapse inside SimplexNoise which
-      // mathematically returns 0 for floats > ~10^8
-      int safeSeed = std::abs(mParams.seed) % 10000;
-      float tunnelSeed =
-          static_cast<float>(safeSeed) + (node.room1 * 7) + (node.room2 * 13);
-
-      for (int i = 0; i <= steps; ++i) {
-        float pct = (steps > 0) ? (static_cast<float>(i) / steps) : 0.5f;
-        float actualX = fx1 + (stepX * i);
-        float actualY = fy1 + (stepY * i);
-
-        // Sine envelope forces the wiggle to 0 at the start and end of the
-        // tunnel
-        float envelope = std::sin(pct * 3.14159265f);
-
-        // Wiggle Offset (Using physical coordinates for coherence)
-        float wiggleOffset =
-            Algo::getSNoise2(
-                actualX * mParams.tunnel.mWiggleFrequency,
-                actualY * mParams.tunnel.mWiggleFrequency + tunnelSeed, 1) *
-            mParams.tunnel.mWiggleAmplitude * envelope;
-
-        // Pulse Radius
-        float radius =
-            1.0f +
-            std::abs(Algo::getSNoise2(
-                actualX * mParams.tunnel.mWidthPulseFrequency + 100.0f,
-                actualY * mParams.tunnel.mWidthPulseFrequency + tunnelSeed,
-                1)) *
-                mParams.tunnel.mWidthPulseAmplitude;
-
-        int drawX =
-            static_cast<int>(std::round(actualX + orthoX * wiggleOffset));
-        int drawY =
-            static_cast<int>(std::round(actualY + orthoY * wiggleOffset));
-
-        if (prevDrawX == -1) {
-          carveCircle(tileMap, drawX, drawY, radius, mInfo.mCaveWidth,
-                      mInfo.mCaveHeight);
-        } else {
-          // Bresenham's line algorithm ensures the step between i-1 and i has
-          // no gaps
-          int bdx = std::abs(drawX - prevDrawX);
-          int bdy = -std::abs(drawY - prevDrawY);
-          int sx = prevDrawX < drawX ? 1 : -1;
-          int sy = prevDrawY < drawY ? 1 : -1;
-          int err = bdx + bdy;
-          int currentX = prevDrawX;
-          int currentY = prevDrawY;
-
-          while (true) {
-            carveCircle(tileMap, currentX, currentY, radius, mInfo.mCaveWidth,
-                        mInfo.mCaveHeight);
-            if (currentX == drawX && currentY == drawY)
-              break;
-            int e2 = 2 * err;
-            if (e2 >= bdy) {
-              err += bdy;
-              currentX += sx;
-            }
-            if (e2 <= bdx) {
-              err += bdx;
-              currentY += sy;
-            }
-          }
-        }
-
-        prevDrawX = drawX;
-        prevDrawY = drawY;
-
-        LOG_DEBUG_CONT("  " << drawX << "," << drawY);
-      }
-    } else {
-      // Standard Straight Tunnel Bresenham (from exact start to exact end)
-      int dx = std::abs(fx2 - fx1);
-      int dy = -std::abs(fy2 - fy1);
-      int sx = fx1 < fx2 ? 1 : -1;
-      int sy = fy1 < fy2 ? 1 : -1;
-      int err = dx + dy;
-
-      int currentX = fx1;
-      int currentY = fy1;
-
-      while (true) {
-        setCell(tileMap, currentX, currentY, SOLID);
-        LOG_DEBUG_CONT("  " << currentX << "," << currentY);
-        if (currentX == fx2 && currentY == fy2)
-          break;
-        int e2 = 2 * err;
-        if (e2 >= dy) {
-          err += dy;
-          currentX += sx;
-        }
-        if (e2 <= dx) {
-          err += dx;
-          currentY += sy;
-        }
+    // Group all non-MST candidate edges by their constituent rooms
+    std::unordered_map<int, std::vector<const Cave::BorderWall *>> roomExtras;
+    for (const auto &bw : borderWalls) {
+      auto key = std::make_pair(std::min(bw.room1, bw.room2),
+                                std::max(bw.room1, bw.room2));
+      if (mstPairs.count(key) == 0) {
+        roomExtras[bw.room1].push_back(&bw);
+        roomExtras[bw.room2].push_back(&bw);
       }
     }
-    LOG_DEBUG("");
+
+    // Use the project's deterministic RNG (matches CaveBspTectonic/CaveDLA
+    // pattern). Seeded from mParams.seed so results are fully deterministic.
+    RNG::RandUniversal rng(static_cast<unsigned>(mParams.seed));
+    std::set<std::pair<int, int>> drawnExtras;
+
+    for (auto &[roomId, candidates] : roomExtras) {
+      // Per-room probability gate
+      if (static_cast<float>(rng.getFloat()) >
+          mParams.tunnel.mExtraConnectionChance)
+        continue;
+
+      // Fisher-Yates shuffle using RandUniversal::getFloat()
+      for (int i = static_cast<int>(candidates.size()) - 1; i > 0; --i) {
+        int j = static_cast<int>(rng.getFloat() * (i + 1));
+        if (j < 0)
+          j = 0;
+        if (j > i)
+          j = i;
+        std::swap(candidates[i], candidates[j]);
+      }
+
+      int drawn = 0;
+      for (const Cave::BorderWall *bw : candidates) {
+        if (drawn >= mParams.tunnel.mExtraConnections)
+          break;
+        auto key = std::make_pair(std::min(bw->room1, bw->room2),
+                                  std::max(bw->room1, bw->room2));
+        if (drawnExtras.count(key))
+          continue;
+        drawnExtras.insert(key);
+        drawTunnel(tileMap, *bw);
+        drawn++;
+      }
+    }
   }
   LOG_DEBUG("----JOIN ROOMS END----");
   for (int y = 0; y < tileMap.size(); ++y) {

@@ -79,6 +79,8 @@ private:
   findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
                   std::vector<int> roomIds);
 
+  void drawTunnel(TileMap &tileMap, const BorderWall &node);
+
 public:
   // NOTE: Return IGNORE if out of bounds
   static TileName getTile(const TileMap &tileMap, int cx, int cy);

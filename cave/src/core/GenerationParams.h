@@ -67,6 +67,10 @@ struct TunnelParams {
   float mWidthPulseAmplitude =
       1.2f; // Max random thickness added to base tunnel
   float mWidthPulseFrequency = 0.3f; // How fast the thickness pulses
+  int mExtraConnections =
+      0; // Extra non-MST tunnels to draw per room (0 = MST only)
+  float mExtraConnectionChance =
+      1.0f; // 0..1 per-room probability of attempting extra tunnels
 };
 
 /**
