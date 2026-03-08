@@ -35,7 +35,6 @@ public:
   CuteCave &setSmoothing(bool doSmoothing);
   CuteCave &setSmoothCorners(bool doSmoothCorners);
   CuteCave &setSmoothPoints(bool doSmoothPoints);
-  CuteCave &setRemoveDiagonals(bool doRemoveDiagonas);
   CuteCave &setGenerations(std::vector<Cave::GenerationStep> gens);
   CuteCave &setVoronoiParams(float noiseScale, float warpStrength,
                              float voronoiWeight, float threshold,

@@ -13,26 +13,26 @@ struct UpdateInfo;
 
 class CaveSmoother {
   void removeDiagonalGaps();
-  void smoothEdges(std::vector<std::vector<bool>>& smoothedGrid);
-  void smoothCorners(std::vector<std::vector<bool>>& smoothedGrid);
+  void smoothEdges(std::vector<std::vector<bool>> &smoothedGrid);
+  void smoothCorners(std::vector<std::vector<bool>> &smoothedGrid);
   void smoothPoints();
   template <size_t SZ>
   bool smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
-                     std::vector<std::vector<int>>& inGrid,
-                     std::vector<std::vector<bool>>& smoothedGrid,
+                     std::vector<std::vector<int>> &inGrid,
+                     std::vector<std::vector<bool>> &smoothedGrid,
                      bool updateInGrid = false);
 
- public:
-  CaveSmoother(TileMap& tm, const CaveInfo& i);
+public:
+  CaveSmoother(TileMap &tm, const CaveInfo &i);
   ~CaveSmoother();
 
   void smooth();
 
- private:
-  TileMap& tileMap;
-  const CaveInfo& info;
+private:
+  TileMap &mTileMap;
+  const CaveInfo &mInfo;
 };
 
-}  // namespace Cave
+} // namespace Cave
 
 #endif
