@@ -19,13 +19,10 @@ TileMap CaveHeightmap::generate(int width, int height,
   // Z-offset for organic variation per seed
   double zOffset = simple.getFloat() * 10000.0;
 
-  const double W = width - 1;
-  const double H = height - 1;
-
   for (int cy = 0; cy < height; ++cy) {
     for (int cx = 0; cx < width; ++cx) {
-      double x = (cx / W) * params.heightmap.mFreq;
-      double y = (cy / H) * params.heightmap.mFreq;
+      double x = (cx / 32.0) * params.heightmap.mFreq;
+      double y = (cy / 32.0) * params.heightmap.mFreq;
 
       // Using Simplex Noise based on the specified octaves
       double n = Algo::getSNoise3(x, y, zOffset, params.heightmap.mOctaves);

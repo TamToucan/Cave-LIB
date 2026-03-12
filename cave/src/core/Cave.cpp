@@ -661,47 +661,7 @@ Cave::findMST_Kruskal(std::vector<Cave::BorderWall> &borderWalls,
 
 void Cave::smooth(TileMap &tileMap) {
   CaveSmoother smoother(tileMap, mInfo);
-
-  for (const auto &row : tileMap) {
-    for (const auto &cell : row) {
-      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-  int y = 0;
-  std::cout << std::endl;
-  for (const auto &row : tileMap) {
-    std::cout << std::setw(2) << y << "  ";
-    for (const auto &cell : row) {
-      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
-    }
-    ++y;
-    std::cout << std::endl;
-  }
-
-  std::cout << std::endl;
-  std::cout << std::endl;
   smoother.smooth();
-  std::cout << std::endl;
-  std::cout << std::endl;
-
-  for (int x = 0; x < tileMap[0].size(); ++x) {
-    std::cout << (x % 10);
-  }
-  std::cout << std::endl;
-
-  y = 0;
-  std::cout << std::endl;
-  for (const auto &row : tileMap) {
-    std::cout << std::setw(2) << y << "  ";
-    for (const auto &cell : row) {
-      std::cout << (Cave::isEmpty(cell) ? ' ' : '#');
-    }
-    ++y;
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
 }
 
 TileName Cave::getTile(const TileMap &tileMap, int cx, int cy) {
