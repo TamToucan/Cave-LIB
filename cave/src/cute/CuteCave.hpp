@@ -41,8 +41,8 @@ public:
                              bool invertVoronoi);
   CuteCave &setHeightmapParams(int octaves, float freq, float waterLevelMin,
                                float waterLevelMax);
-  CuteCave &setDLAParams(int particleCount, int openAreaCount,
-                         int openAreaRadius);
+  CuteCave &setDLAParams(int particleCount, int particleRadius,
+                         int openAreaCount, int openAreaRadius);
   CuteCave &setTunnelParams(int minLengthForOrganic, float wiggleAmplitude,
                             float wiggleFrequency, float widthPulseAmplitude,
                             float widthPulseFrequency, int extraConnections = 0,

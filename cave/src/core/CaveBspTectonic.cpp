@@ -80,14 +80,13 @@ TileMap CaveBspTectonic::generate(int width, int height,
 
     const double W = rw - 1 + bspParams.mCaParams.mAmp;
     const double H = rh - 1 + bspParams.mCaParams.mAmp;
-    // Perlin logic matches standard CA initialization
-    double (*pf)(double, double, int) =
-        bspParams.mCaParams.mPerlin ? &Algo::getSNoise2 : &Algo::getNoise2;
 
-    // Use a slightly offset seed for each node to ensure variance when not
-    // using perlin
+    // Per-room seed offset: incorporates master seed + room position.
+    // Used for both the RNG path and as a z-slice for Simplex so that
+    // different seeds and different rooms produce distinct noise patterns.
     int offsetSeed = params.seed + (leaf.x * 13) + (leaf.y * 7);
     RNG::RandUniversal localRng(offsetSeed);
+    const double zOffset = (offsetSeed % 10000) / 100.0;
 
     for (int y = 0; y < rh; ++y) {
       for (int x = 0; x < rw; ++x) {
@@ -100,7 +99,7 @@ TileMap CaveBspTectonic::generate(int width, int height,
 
           double noiseVal = 0.0;
           if (bspParams.mCaParams.mPerlin) {
-            noiseVal = (*pf)(nx, ny, bspParams.mCaParams.mOctaves);
+            noiseVal = Algo::getSNoise3(nx, ny, zOffset, bspParams.mCaParams.mOctaves);
           } else {
             noiseVal = localRng.getFloat() - bspParams.mCaParams.mWallChance;
           }

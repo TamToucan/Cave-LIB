@@ -45,7 +45,22 @@ TileMap CaveDLA::generate(int width, int height,
       }
 
       if (touchingFloor) {
-        map[py][px] = FLOOR;
+        int pr = params.dla.mParticleRadius;
+        if (pr <= 0) {
+          map[py][px] = FLOOR;
+        } else {
+          int pr2 = pr * pr;
+          for (int ry = -pr; ry <= pr; ++ry) {
+            for (int rx = -pr; rx <= pr; ++rx) {
+              if (rx * rx + ry * ry <= pr2) {
+                int fx = px + rx;
+                int fy = py + ry;
+                if (fx >= 1 && fx < width - 1 && fy >= 1 && fy < height - 1)
+                  map[fy][fx] = FLOOR;
+              }
+            }
+          }
+        }
         break; // Particle crystallized
       }
 

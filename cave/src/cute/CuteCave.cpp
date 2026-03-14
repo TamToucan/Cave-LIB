@@ -109,9 +109,10 @@ CuteCave &CuteCave::setHeightmapParams(int octaves, float freq,
   return *this;
 }
 
-CuteCave &CuteCave::setDLAParams(int particleCount, int openAreaCount,
-                                 int openAreaRadius) {
+CuteCave &CuteCave::setDLAParams(int particleCount, int particleRadius,
+                                 int openAreaCount, int openAreaRadius) {
   m_gen_params.dla.mParticleCount = particleCount;
+  m_gen_params.dla.mParticleRadius = particleRadius;
   m_gen_params.dla.mOpenAreaCount = openAreaCount;
   m_gen_params.dla.mOpenAreaRadius = openAreaRadius;
   return *this;

@@ -50,10 +50,12 @@ struct HeightmapParams {
  * @struct DLAParams
  * @brief Parameters for Diffusion-Limited Aggregation (DLA) cave generation.
  * @details SPECIFICATION: Configures the particle simulation count and
- * number/size of carved open areas in the resulting structure.
+ * number/size of carved open areas in the resulting structure. mParticleRadius
+ * controls the carve radius per crystallized particle (0 = single cell).
  */
 struct DLAParams {
   int mParticleCount = 3000;
+  int mParticleRadius = 0;
   int mOpenAreaCount = 5;
   int mOpenAreaRadius = 3;
 };

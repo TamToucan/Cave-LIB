@@ -108,12 +108,12 @@ void Cave::initialise(TileMap &tileMap) {
   }
 
   //
-  // Fill with random or perlin
+  // Fill with random or simplex noise
   //
   const double W = mInfo.mCaveWidth - 1 + mParams.cellular.mAmp;
   const double H = mInfo.mCaveHeight - 1 + mParams.cellular.mAmp;
-  double (*pf)(double, double, int) =
-      mParams.cellular.mPerlin ? &Algo::getSNoise2 : &Algo::getNoise2;
+  // Seed-derived z-slice so Simplex output varies per seed (matches CaveHeightmap pattern)
+  const double zOffset = (mParams.seed % 10000) / 100.0;
 
   for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
     for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
@@ -121,7 +121,7 @@ void Cave::initialise(TileMap &tileMap) {
       double y = cy / H * mParams.cellular.mFreq;
 
       double n1 = mParams.cellular.mPerlin
-                      ? (*pf)(x, y, mParams.cellular.mOctaves)
+                      ? Algo::getSNoise3(x, y, zOffset, mParams.cellular.mOctaves)
                       : simple.getFloat() - mParams.cellular.mWallChance;
       setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
     }
