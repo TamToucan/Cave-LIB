@@ -46,7 +46,8 @@ public:
   CuteCave &setTunnelParams(int minLengthForOrganic, float wiggleAmplitude,
                             float wiggleFrequency, float widthPulseAmplitude,
                             float widthPulseFrequency, int extraConnections = 0,
-                            float extraConnectionChance = 1.0f);
+                            float extraConnectionChance = 1.0f,
+                            int extraConnectionMaxDist = 20);
   CuteCave &setBspTectonicParams(int depth, int minRoomSize, int roomPadding);
   CuteCave &setBspTectonicCaParams(int octaves, bool usePerlin,
                                    float wallChance, float freq, float amp,

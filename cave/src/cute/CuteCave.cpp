@@ -122,7 +122,8 @@ CuteCave &
 CuteCave::setTunnelParams(int minLengthForOrganic, float wiggleAmplitude,
                           float wiggleFrequency, float widthPulseAmplitude,
                           float widthPulseFrequency, int extraConnections,
-                          float extraConnectionChance) {
+                          float extraConnectionChance,
+                          int extraConnectionMaxDist) {
   m_gen_params.tunnel.mMinLengthForOrganic = minLengthForOrganic;
   m_gen_params.tunnel.mWiggleAmplitude = wiggleAmplitude;
   m_gen_params.tunnel.mWiggleFrequency = wiggleFrequency;
@@ -130,6 +131,7 @@ CuteCave::setTunnelParams(int minLengthForOrganic, float wiggleAmplitude,
   m_gen_params.tunnel.mWidthPulseFrequency = widthPulseFrequency;
   m_gen_params.tunnel.mExtraConnections = extraConnections;
   m_gen_params.tunnel.mExtraConnectionChance = extraConnectionChance;
+  m_gen_params.tunnel.mExtraConnectionMaxDist = extraConnectionMaxDist;
   return *this;
 }
 

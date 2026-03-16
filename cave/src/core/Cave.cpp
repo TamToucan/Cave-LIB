@@ -11,7 +11,6 @@
 #include "CaveSmoother.h"
 #include "Debug.h"
 #include "DisjointSets.h"
-#include "PerlinNoise.h"
 #include "RandSimple.h"
 #include "RandUniversal.h" // Added as per instruction
 #include "RogueCave.hpp"
@@ -112,7 +111,8 @@ void Cave::initialise(TileMap &tileMap) {
   //
   const double W = mInfo.mCaveWidth - 1 + mParams.cellular.mAmp;
   const double H = mInfo.mCaveHeight - 1 + mParams.cellular.mAmp;
-  // Seed-derived z-slice so Simplex output varies per seed (matches CaveHeightmap pattern)
+  // Seed-derived z-slice so Simplex output varies per seed (matches
+  // CaveHeightmap pattern)
   const double zOffset = (mParams.seed % 10000) / 100.0;
 
   for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
@@ -120,9 +120,10 @@ void Cave::initialise(TileMap &tileMap) {
       double x = cx / W * mParams.cellular.mFreq;
       double y = cy / H * mParams.cellular.mFreq;
 
-      double n1 = mParams.cellular.mPerlin
-                      ? Algo::getSNoise3(x, y, zOffset, mParams.cellular.mOctaves)
-                      : simple.getFloat() - mParams.cellular.mWallChance;
+      double n1 =
+          mParams.cellular.mPerlin
+              ? Algo::getSNoise3(x, y, zOffset, mParams.cellular.mOctaves)
+              : simple.getFloat() - mParams.cellular.mWallChance;
       setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
     }
   }
@@ -286,6 +287,7 @@ Cave::findRooms(TileMap &tileMap) {
 }
 
 namespace {
+
 void carveCircle(TileMap &tileMap, int cx, int cy, float radius, int maxWidth,
                  int maxHeight) {
   int r = static_cast<int>(std::ceil(radius));
@@ -301,6 +303,7 @@ void carveCircle(TileMap &tileMap, int cx, int cy, float radius, int maxWidth,
     }
   }
 }
+
 } // namespace
 
 void Cave::drawTunnel(TileMap &tileMap, const BorderWall &node) {
@@ -335,6 +338,10 @@ void Cave::drawTunnel(TileMap &tileMap, const BorderWall &node) {
     float tunnelSeed =
         static_cast<float>(safeSeed) + (node.room1 * 7) + (node.room2 * 13);
 
+    LOG_INFO("DRAW-TUNNEL:\n  SEED: "
+             << tunnelSeed << "\n  FLOOR1 XY: " << node.floor1.x << ","
+             << node.floor1.y << "\n  FLOOR2 XY: " << node.floor2.x << ","
+             << node.floor2.y << "\n  THICKNESS: " << node.thickness);
     for (int i = 0; i <= steps; ++i) {
       float pct = (steps > 0) ? (static_cast<float>(i) / steps) : 0.5f;
       float actualX = fx1 + (stepX * i);
@@ -355,8 +362,12 @@ void Cave::drawTunnel(TileMap &tileMap, const BorderWall &node) {
               actualY * mParams.tunnel.mWidthPulseFrequency + tunnelSeed, 1)) *
               mParams.tunnel.mWidthPulseAmplitude;
 
-      int drawX = static_cast<int>(std::round(actualX + orthoX * wiggleOffset));
-      int drawY = static_cast<int>(std::round(actualY + orthoY * wiggleOffset));
+      int drawX = std::clamp(
+          static_cast<int>(std::round(actualX + orthoX * wiggleOffset)), 0,
+          mInfo.mCaveWidth - 1);
+      int drawY = std::clamp(
+          static_cast<int>(std::round(actualY + orthoY * wiggleOffset)), 0,
+          mInfo.mCaveHeight - 1);
 
       if (prevDrawX == -1) {
         carveCircle(tileMap, drawX, drawY, radius, mInfo.mCaveWidth,
@@ -372,8 +383,9 @@ void Cave::drawTunnel(TileMap &tileMap, const BorderWall &node) {
         while (true) {
           carveCircle(tileMap, currentX, currentY, radius, mInfo.mCaveWidth,
                       mInfo.mCaveHeight);
-          if (currentX == drawX && currentY == drawY)
+          if (currentX == drawX && currentY == drawY) {
             break;
+          }
           int e2 = 2 * err;
           if (e2 >= bdy) {
             err += bdy;
@@ -466,6 +478,7 @@ void Cave::joinRooms(
     // pattern). Seeded from mParams.seed so results are fully deterministic.
     RNG::RandUniversal rng(static_cast<unsigned>(mParams.seed));
     std::set<std::pair<int, int>> drawnExtras;
+    const int maxDist = mParams.tunnel.mExtraConnectionMaxDist;
 
     for (auto &[roomId, candidates] : roomExtras) {
       // Per-room probability gate
@@ -473,19 +486,19 @@ void Cave::joinRooms(
           mParams.tunnel.mExtraConnectionChance)
         continue;
 
-      // Fisher-Yates shuffle using RandUniversal::getFloat()
-      for (int i = static_cast<int>(candidates.size()) - 1; i > 0; --i) {
-        int j = static_cast<int>(rng.getFloat() * (i + 1));
-        if (j < 0)
-          j = 0;
-        if (j > i)
-          j = i;
-        std::swap(candidates[i], candidates[j]);
-      }
+      // Sort by Euclidean distance ascending so extra connections prefer the
+      // nearest non-MST neighbours first, preventing long cross-map tunnels.
+      std::sort(candidates.begin(), candidates.end(),
+                [](const Cave::BorderWall *a, const Cave::BorderWall *b) {
+                  return a->thickness < b->thickness;
+                });
 
       int drawn = 0;
       for (const Cave::BorderWall *bw : candidates) {
         if (drawn >= mParams.tunnel.mExtraConnections)
+          break;
+        // Distance cap: list is sorted so once we exceed maxDist we are done.
+        if (maxDist > 0 && bw->thickness > maxDist)
           break;
         auto key = std::make_pair(std::min(bw->room1, bw->room2),
                                   std::max(bw->room1, bw->room2));
