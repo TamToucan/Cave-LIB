@@ -34,7 +34,7 @@ TileMap Cave::generate() {
   TileMap tileMap(mInfo.mCaveHeight + 2,
                   std::vector<int>(mInfo.mCaveWidth + 2));
 
-  LOG_INFO(getParamsString());
+  LOG_INFO("Cave::getParamsString() " << getParamsString());
   initialise(tileMap);
 
   TileMap genMap;
@@ -196,9 +196,6 @@ void Cave::fixUp(TileMap &tileMap) {
         if (Cave::isWall(tileMap, cx + 1, cy + 1))
           DIAG += 4;
 
-        LOG_DEBUG(cx << "," << cy << " D:" << DIAG << " N:" << NSEW
-                     << " W:" << Cave::isWall(tileMap, cx, cy));
-
         if (Cave::isWall(tileMap, cx, cy)) {
           if (((DIAG & 0b0001) != 0) && ((NSEW & 0b1001) == 0))
             floors.push_back({cx, cy});
@@ -210,20 +207,15 @@ void Cave::fixUp(TileMap &tileMap) {
             floors.push_back({cx, cy});
         } else if ((DIAG == 0b1111) && (NSEW == 0b1111)) {
           walls.push_back({cx, cy});
-          LOG_DEBUG("ADDWALL: " << cx << "," << cy << " D:" << DIAG
-                                << " N:" << NSEW);
         }
       }
     }
-    LOG_DEBUG("WALLS: " << walls.size() << " FLOORS: " << floors.size());
     if (walls.empty() && floors.empty())
       return;
     for (Vector2i corner : walls) {
-      LOG_DEBUG("WALL: " << corner.x << "," << corner.y);
       setCell(tileMap, corner.x, corner.y, WALL);
     }
     for (Vector2i corner : floors) {
-      LOG_DEBUG("FLOOR: " << corner.x << "," << corner.y);
       setCell(tileMap, corner.x, corner.y, FLOOR);
     }
     walls.clear();
@@ -278,7 +270,6 @@ Cave::findRooms(TileMap &tileMap) {
         int rootId = floors.findSet(current);
         grid_to_set[current] = rootId;
         set_to_cells[rootId].push_back(current);
-        LOG_DEBUG("xy: " << cx << "," << cy << " <=> " << rootId);
       }
     }
   }
