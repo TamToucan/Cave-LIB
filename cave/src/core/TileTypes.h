@@ -82,6 +82,18 @@ enum TileName {
   H30cCT,
   H30dCT,
 
+  // Cut the thick end of the 60 degree tiles
+  V60a1CT,
+  V60b1CT,
+  V60c1CT,
+  V60d1CT,
+
+  // Cut the thick end of the 30 degree tiles
+  H30a1CT,
+  H30b1CT,
+  H30c1CT,
+  H30d1CT,
+
   // Generic wall, input to the smoother.
   WALL,
 

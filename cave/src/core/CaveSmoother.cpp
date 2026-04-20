@@ -374,34 +374,58 @@ constexpr PointUpdate make_point_update(const TileName2x2 (&grids)[NUM],
 
 static const TileName2x2 Grids_45a_2CUTS[] = {
     {{IGNORE, T45d}, {T45b, T45a}},
-
-    {{IGNORE, H30d2}, {T45b, T45a}},
-
+    {{IGNORE, T45d}, {H30b1, T45a}},
     {{IGNORE, T45d}, {V60b2, T45a}},
+
+    {{IGNORE, H30d1}, {V60b1, T45a}},  
+    {{IGNORE, H30d1}, {H30b2, T45a}},  
+    {{IGNORE, H30d1}, {T45b, T45a}},  
+    
+    {{IGNORE, V60d1}, {V60b1, T45a}},  
+    {{IGNORE, V60d1}, {H30b2, T45a}},  
+    {{IGNORE, V60d1}, {T45b, T45a}},  
 };
 
 static const TileName2x2 Grids_45b_2CUTS[] = {
     {{T45c, IGNORE}, {T45b, T45a}},
+    {{T45c, IGNORE}, {V60a2, T45a}},
+    {{T45c, IGNORE}, {H30a1, T45a}},
 
     {{H30c2, IGNORE}, {T45b, T45a}},
+    {{H30c2, IGNORE}, {T45b, H30a1}},
+    {{H30c2, IGNORE}, {T45b, V60a2}},    
 
-    {{T45c, IGNORE}, {T45b, V60a2}},
+    {{V60c1, IGNORE}, {T45b, T45a}},
+    {{V60c1, IGNORE}, {T45b, H30a1}},
+    {{V60c1, IGNORE}, {T45b, V60a2}},
 };
 
 static const TileName2x2 Grids_45c_2CUTS[] = {
     {{T45c, T45d}, {T45b, IGNORE}},
-
+    {{T45c, T45d}, {V60b1, IGNORE}},
     {{T45c, T45d}, {H30b2, IGNORE}},
 
+    {{T45c, H30d1}, {T45b, IGNORE}},
+    {{T45c, H30d1}, {V60b1, IGNORE}},
+    {{T45c, H30d1}, {H30b2, IGNORE}},
+
     {{T45c, V60d2}, {T45b, IGNORE}},
+    {{T45c, V60d2}, {V60b1, IGNORE}},
+    {{T45c, V60d2}, {H30b2, IGNORE}},
 };
 
 static const TileName2x2 Grids_45d_2CUTS[] = {
     {{T45c, T45d}, {IGNORE, T45a}},
+    {{T45c, T45d}, {IGNORE, V60a1}},
+    {{T45c, T45d}, {IGNORE, H30a2}},
 
     {{V60c2, T45d}, {IGNORE, T45a}},
+    {{V60c2, T45d}, {IGNORE, V60a1}},
+    {{V60c2, T45d}, {IGNORE, H30a2}},
 
-    {{T45c, T45d}, {IGNORE, H30a2}},
+    {{H30c1, T45d}, {IGNORE, T45a}},
+    {{H30c1, T45d}, {IGNORE, V60a1}},
+    {{H30c1, T45d}, {IGNORE, H30a2}},
 };
 
 // 2 corners (b and d) from T45a
@@ -409,44 +433,86 @@ static const TileName2x2 Grids_45a_bCUT[] = {
     {{IGNORE, T45d}, {IGNORE, T45a}},
 
     {{IGNORE, H30d2}, {IGNORE, T45a}},
+    {{IGNORE, V60d1}, {IGNORE, T45a}},
 };
 static const TileName2x2 Grids_45a_dCUT[] = {
     {{IGNORE, IGNORE}, {T45b, T45a}},
 
     {{IGNORE, IGNORE}, {V60b2, T45a}},
+    {{IGNORE, IGNORE}, {H30b1, T45a}},
 };
 // 2 corners (a and c) from T45b
 static const TileName2x2 Grids_45b_aCUT[] = {
     {{T45c, IGNORE}, {T45b, IGNORE}},
 
     {{H30c2, IGNORE}, {T45b, IGNORE}},
+    {{V60c1, IGNORE}, {T45b, IGNORE}},
 };
 static const TileName2x2 Grids_45b_cCUT[] = {
     {{IGNORE, IGNORE}, {T45b, T45a}},
 
     {{IGNORE, IGNORE}, {T45b, V60a2}},
+    {{IGNORE, IGNORE}, {T45b, H30a1}},
 };
 // 2 corners (b and d) from T45c
 static const TileName2x2 Grids_45c_bCUT[] = {
     {{T45c, T45d}, {IGNORE, IGNORE}},
 
     {{T45c, V60d2}, {IGNORE, IGNORE}},
+    {{T45c, H30d1}, {IGNORE, IGNORE}},
 };
 static const TileName2x2 Grids_45c_dCUT[] = {
     {{T45c, IGNORE}, {T45b, IGNORE}},
 
     {{T45c, IGNORE}, {H30b2, IGNORE}},
+    {{T45c, IGNORE}, {V60b1, IGNORE}},
 };
 // 2 corners (a and c) from T45d
 static const TileName2x2 Grids_45d_aCUT[] = {
     {{T45c, T45d}, {IGNORE, IGNORE}},
 
     {{V60c2, T45d}, {IGNORE, IGNORE}},
+    {{H30c1, T45d}, {IGNORE, IGNORE}},
 };
 static const TileName2x2 Grids_45d_cCUT[] = {
     {{IGNORE, T45d}, {IGNORE, T45a}},
 
     {{IGNORE, T45d}, {IGNORE, H30a2}},
+    {{IGNORE, T45d}, {IGNORE, V60a1}},
+};
+
+static const TileName2x2 Grids_30a[] = {
+    {{H30b1, H30a1}, {IGNORE, IGNORE}},
+    {{T45b, H30a1}, {IGNORE, IGNORE}}
+};
+static const TileName2x2 Grids_30b[] = {
+    {{H30b1, H30a1}, {IGNORE, IGNORE}},
+    {{H30b1, T45a}, {IGNORE, IGNORE}}
+};
+static const TileName2x2 Grids_30c[] = {
+    {{H30c1, H30d1}, {IGNORE, IGNORE}},
+    {{H30c1, T45d}, {IGNORE, IGNORE}}
+};
+static const TileName2x2 Grids_30d[] = {
+    {{H30c1, H30d1}, {IGNORE, IGNORE}},
+    {{T45c, H30d1}, {IGNORE, IGNORE}}
+};
+
+static const TileName2x2 Grids_60a[] = {
+    {{IGNORE, V60d1}, { IGNORE, V60a1}},
+    {{IGNORE, T45d}, { IGNORE, V60a1}}
+};
+static const TileName2x2 Grids_60b[] = {
+    {{IGNORE, V60c1}, { IGNORE,V60b1}},
+    {{IGNORE, T45c}, { IGNORE,V60b1}}
+};
+static const TileName2x2 Grids_60c[] = {
+    {{IGNORE, V60c1}, { IGNORE,V60b1}},
+    {{IGNORE, V60c1}, { IGNORE,T45b}}
+};
+static const TileName2x2 Grids_60d[] = {
+    {{IGNORE, V60d1}, { IGNORE, V60a1}},
+    {{IGNORE, V60d1}, { IGNORE, T45a}}
 };
 
 static const PointUpdate Grid45a_2CUT =
@@ -475,11 +541,32 @@ static const PointUpdate Grid45d_aCUT =
 static const PointUpdate Grid45d_cCUT =
     make_point_update(Grids_45d_cCUT, 1, 0, T45dcCT);
 
+static const PointUpdate Grid30a_CUT =
+    make_point_update(Grids_30a, 1, 0, H30a1CT);
+static const PointUpdate Grid30b_CUT =
+    make_point_update(Grids_30b, 0, 0, H30b1CT);
+static const PointUpdate Grid30c_CUT =
+    make_point_update(Grids_30c, 0, 0, H30c1CT);
+static const PointUpdate Grid30d_CUT =
+    make_point_update(Grids_30d, 1, 0, H30d1CT);
+
+static const PointUpdate Grid60a_CUT =
+    make_point_update(Grids_60a, 1, 1, V60a1CT);
+static const PointUpdate Grid60b_CUT =
+    make_point_update(Grids_60b, 1, 1, V60b1CT);
+static const PointUpdate Grid60c_CUT =
+    make_point_update(Grids_60c, 1, 0, V60c1CT);
+static const PointUpdate Grid60d_CUT =
+    make_point_update(Grids_60d, 1, 0, V60d1CT);
+
 static const PointUpdate pointUpdates[] = {
     Grid45a_2CUT, Grid45b_2CUT, Grid45c_2CUT, Grid45d_2CUT,
 
     Grid45a_bCUT, Grid45a_dCUT, Grid45b_aCUT, Grid45b_cCUT,
     Grid45c_bCUT, Grid45c_dCUT, Grid45d_aCUT, Grid45d_cCUT,
+
+    Grid30a_CUT, Grid30b_CUT, Grid30c_CUT, Grid30d_CUT,
+    Grid60a_CUT, Grid60b_CUT, Grid60c_CUT, Grid60d_CUT,
 };
 
 //

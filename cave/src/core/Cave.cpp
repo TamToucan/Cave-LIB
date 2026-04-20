@@ -818,6 +818,24 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::H30dCT:
     return Idx(0, 0);
 
+  case TileName::H30c1CT:
+    return Idx(4, 0);
+  case TileName::H30d1CT:
+    return Idx(5, 0);
+  case TileName::H30b1CT:
+    return Idx(6, 0);
+  case TileName::H30a1CT:
+    return Idx(7, 0);
+
+  case TileName::V60b1CT:
+    return Idx(4, 3);
+  case TileName::V60a1CT:
+    return Idx(5, 3);
+  case TileName::V60c1CT:
+    return Idx(6, 3);
+  case TileName::V60d1CT:
+    return Idx(7, 3);
+
   default:
     return Idx(0, 7); // Default to FLOOR
   }
