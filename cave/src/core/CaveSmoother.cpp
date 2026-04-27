@@ -779,7 +779,6 @@ void CaveSmoother::smoothEdges(std::vector<std::vector<bool>> &smoothedGrid) {
       mInfo.mCaveHeight + GRD_H + 1,
       std::vector<int>(mInfo.mCaveWidth + GRD_W + 1, SOLID));
 
-  SET_DEBUG("ALL");
   LOG_INFO("===== PRE SMOOTH MAP =====");
   for (int y = 0; y < mInfo.mCaveHeight; y++) {
     for (int x = 0; x < mInfo.mCaveWidth; x++) {
