@@ -1,8 +1,19 @@
 #ifndef TILE_TYPES_H
 #define TILE_TYPES_H
+
+/**
+ * @file TileTypes.h
+ * @brief Tile-id enum and TileMap alias used across all Cave generators.
+ * @details TileMap is a 2D vector<int> indexed [y][x] storing TileName values.
+ * Wrappers (e.g. Godot's GDCave, the Cute CuteCave) translate these ids to
+ * concrete sprite atlas indices. Values past TILE_COUNT (IGNORE) are reserved
+ * sentinels and never rendered.
+ */
+
 #include <vector>
 
 namespace Cave {
+/// 2D tile grid indexed as [y][x], each cell holding a TileName value.
 using TileMap = std::vector<std::vector<int>>;
 
 // TileName is used to identify the type of tile to be placed in the map.

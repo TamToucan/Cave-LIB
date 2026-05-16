@@ -1,12 +1,31 @@
 #ifndef GENERATION_PARAMS_H
 #define GENERATION_PARAMS_H
 
+/**
+ * @file GenerationParams.h
+ * @brief Aggregates all tuneable parameters for cave generation backends.
+ * @details GenerationParams is the single bag of settings handed to Cave().
+ * mCaveType selects which backend runs; per-backend sub-structs
+ * (CellularParams, VoronoiParams, HeightmapParams, DLAParams,
+ * BspTectonicParams) hold the parameters for that backend. TunnelParams is
+ * shared — it controls how rooms detected after the backend runs are
+ * connected.
+ */
+
 #include <vector>
 
 namespace Cave {
 
+/// Generator backend selector. Picks which algorithm Cave::generate() runs.
 enum class CaveType { CELLULAR, VORONOI, HEIGHTMAP, DLA, BSP_TECTONIC, EMPTY };
 
+/**
+ * @struct GenerationStep
+ * @brief One iteration of cellular-automata rules.
+ * @details b3/b5 thresholds control "birth" (wall created), s3/s5 control
+ * "survive" (wall persists) using 3x3 and 5x5 neighbour counts respectively.
+ * reps is the number of times this step is applied before moving to the next.
+ */
 struct GenerationStep {
   int b3_min, b3_max;
   int b5_min, b5_max;
@@ -15,6 +34,13 @@ struct GenerationStep {
   int reps;
 };
 
+/**
+ * @struct CellularParams
+ * @brief Parameters for the classic Cellular-Automata cave generator.
+ * @details Seeded with Perlin or simple random noise (mPerlin), with wall
+ * density mWallChance and noise frequency/amplitude. mGenerations defines the
+ * sequence of CA passes applied to the seed.
+ */
 struct CellularParams {
   int mOctaves = 8;
   bool mPerlin = false;
@@ -24,6 +50,12 @@ struct CellularParams {
   std::vector<GenerationStep> mGenerations;
 };
 
+/**
+ * @struct VoronoiParams
+ * @brief Parameters for the Voronoi-noise cave generator.
+ * @details Combines warped Worley/Voronoi distance with a noise threshold to
+ * cut chambers and connecting cracks.
+ */
 struct VoronoiParams {
   float mNoiseScale = 0.02f;
   float mWarpStrength = 30.0f;
@@ -125,6 +157,12 @@ struct BspTectonicParams {
   CellularParams mCaParams;
 };
 
+/**
+ * @struct GenerationParams
+ * @brief Top-level container of all parameters used by Cave::generate().
+ * @details mCaveType picks which backend runs; only the matching sub-struct is
+ * read by the backend. tunnel and seed are shared across all backends.
+ */
 struct GenerationParams {
   CaveType mCaveType = CaveType::CELLULAR;
   int seed = 0;

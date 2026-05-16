@@ -1,8 +1,17 @@
 #ifndef CAVE_INFO_H
 #define CAVE_INFO_H
 
+/**
+ * @file CaveInfo.h
+ * @brief Shared sizing/Vector types for Cave generators.
+ * @details Defines Vector2i (integer 2D point with ordering for use in
+ * std::map) and CaveInfo (cave grid size and smoothing toggles). CaveInfo is
+ * passed alongside GenerationParams when constructing a Cave.
+ */
+
 namespace Cave {
 
+/// Integer 2D point. Provides equality + lexicographic ordering for set/map use.
 struct Vector2i {
   int x = 0;
   int y = 0;
@@ -20,6 +29,13 @@ struct Vector2i {
   }
 };
 
+/**
+ * @struct CaveInfo
+ * @brief Grid size and post-processing smoothing toggles for a Cave.
+ * @details mCaveWidth/mCaveHeight set the working grid size; the mSmooth*
+ * flags toggle stages in CaveSmoother. Border/Cell/StartCell fields are
+ * retained only for the Godot GDCave wrapper.
+ */
 struct CaveInfo {
   bool mSmoothing = true;     // NOTE: Piority over mRemoveDiagonals
   bool mSmoothCorners = true; // NOTE: not used if mSmoothing is false

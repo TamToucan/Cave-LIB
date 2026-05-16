@@ -16,6 +16,11 @@ namespace Cave {
  */
 class CaveBspTectonic {
 public:
+  /**
+   * @brief Generate a BSP Tectonic TileMap of size width x height.
+   * @param params Pulls BspTectonicParams for split depth, room size and the
+   * embedded CellularParams used to hollow each leaf.
+   */
   static TileMap generate(int width, int height,
                           const GenerationParams &params);
 };

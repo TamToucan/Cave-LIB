@@ -16,6 +16,10 @@ namespace Cave {
  */
 class CaveDLA {
 public:
+  /**
+   * @brief Generate a DLA TileMap of size width x height.
+   * @param params Pulls DLAParams (particle count/radius, open area count/radius).
+   */
   static TileMap generate(int width, int height,
                           const GenerationParams &params);
 };
