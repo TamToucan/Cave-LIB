@@ -19,6 +19,45 @@ using TileMap = std::vector<std::vector<int>>;
 // TileName is used to identify the type of tile to be placed in the map.
 // This is used by the core library and the Godot wrapper will map these
 // to actual tile atlas coordinates.
+//
+// The naming convention is as follows:
+// - T45a, T45b, T45c, T45d are 45 degree angles
+// - V60a, V60b, V60c, V60d are 60 degree angles
+// - H30a, H30b, H30c, H30d are 30 degree angles
+//
+// - Letters a-d refer to the four corners of the tile (a=TL, b=TR, c=BR, d=BL)
+//
+// - The option 1 or 2 at the end, e.g. H30a1, refers to the "thich" end of
+//   a tile pair
+//
+// For exampleto make a  60 degree slope with the right angle at the
+// bottom left requires 2 tiles; V60d1 and (above it) H60d2
+//
+//         a
+//   V60d2 |\     "thin" end
+//         | \
+//   V60d1 |  \
+//         |__\  "thicj" end
+//         d   c
+//
+// -2CT means both corners are cut off. This is ontl T45 tiles (since
+//  a single H30 and V60  tile only has 1 corner)
+
+// - 1CT means the thick end corner is off. This would be corner 'c' in
+//   the above diagram. The ilName would be V60d1CT (V60d1CT with cut corner))
+
+// - CT wihotu 1 or 2 means the thin end corner is cut off. This would be
+//   corner 'a' in the above diagram. The TilName would be V60dCT
+//
+// - CORNER refers to a small "corner tile" in the conner give by
+//   A,B,C,D (same a,b,c,d)
+//
+// - All tiles are symetrical and can be rotated and flipped
+// - END_N, END_S, END_E, END_W are symetrical e.g. END N is
+//   the same even when flipped horontally. When flipped
+//   vertically it equals END_S.
+//
+
 enum TileName {
   T45a,
   T45b,
@@ -116,6 +155,6 @@ enum TileName {
   IGNORE
 };
 
-}  // namespace Cave
+} // namespace Cave
 
 #endif
