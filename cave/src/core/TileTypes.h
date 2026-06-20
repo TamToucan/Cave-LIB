@@ -144,6 +144,12 @@ enum TileName {
   H30c1CT,
   H30d1CT,
 
+  // Ladder tiles for STAIR triggers. Not in the FLOOR range: placed by a
+  // post-generation tile-graphic swap (Game::dispatchPlan_), so the wall grid
+  // and DistanceMap are already baked and unaffected. Passable (no collider).
+  LADDER_DN,
+  LADDER_UP,
+
   // Generic wall, input to the smoother.
   WALL,
 
