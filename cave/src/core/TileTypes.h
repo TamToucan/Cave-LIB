@@ -149,6 +149,15 @@ enum TileName {
   // and DistanceMap are already baked and unaffected. Passable (no collider).
   LADDER_DN,
   LADDER_UP,
+  // CHESTs placed as above via client, they open with with lid moving N/S/E/W
+  CHEST_CLOSE_N,
+  CHEST_CLOSE_S,
+  CHEST_CLOSE_E,
+  CHEST_CLOSE_W,
+  CHEST_OPEN_N,
+  CHEST_OPEN_S,
+  CHEST_OPEN_E,
+  CHEST_OPEN_W,
 
   // Generic wall, input to the smoother.
   WALL,

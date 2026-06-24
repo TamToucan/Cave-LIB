@@ -841,6 +841,25 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::LADDER_UP:
     return Idx(5, 7);
 
+  // These use one tile rotatated by the client
+  case TileName::CHEST_CLOSE_N:
+    return Idx(6, 6);
+  case TileName::CHEST_CLOSE_S:
+    return Idx(6, 6);
+  case TileName::CHEST_CLOSE_E:
+    return Idx(6, 6);
+  case TileName::CHEST_CLOSE_W:
+    return Idx(6, 6);
+
+  case TileName::CHEST_OPEN_N:
+    return Idx(6, 7);
+  case TileName::CHEST_OPEN_S:
+    return Idx(6, 7);
+  case TileName::CHEST_OPEN_E:
+    return Idx(6, 7);
+  case TileName::CHEST_OPEN_W:
+    return Idx(6, 7);
+
   default:
     return Idx(0, 7); // Default to FLOOR
   }
