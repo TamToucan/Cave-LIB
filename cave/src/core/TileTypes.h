@@ -149,6 +149,11 @@ enum TileName {
   // and DistanceMap are already baked and unaffected. Passable (no collider).
   LADDER_DN,
   LADDER_UP,
+  STAIRS_DN,
+  STAIRS_UP,
+
+  CAMPFIRE,
+
   // CHESTs placed as above via client, they open with with lid moving N/S/E/W
   CHEST_CLOSE_N,
   CHEST_CLOSE_S,
