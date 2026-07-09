@@ -12,6 +12,7 @@
  */
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -51,6 +52,10 @@ using IntVectorOfVector2iMap = std::unordered_map<int, std::vector<Vector2i>>;
 class Cave {
   CaveInfo mInfo;
   GenerationParams mParams;
+  /// Client hook run after backend generation and before room-join/smoothing.
+  /// Lets the client stamp template tiles (ids >= CLIENT_TILE_BASE) into the
+  /// map so the cave blends with them. Null = no-op.
+  std::function<void(TileMap &)> mPostGenerateHook;
 
 public:
   Cave(const CaveInfo &info, const GenerationParams &params);
@@ -58,6 +63,9 @@ public:
 
   /// Run the full generation pipeline and return the finished TileMap.
   TileMap generate();
+
+  /// Install the post-generate hook (see mPostGenerateHook). Null clears it.
+  void setPostGenerateHook(std::function<void(TileMap &)> hook);
 
   // Return true if the cell is empty (not a wall). This is needed
   // for when corners have been rounded e.g. DEND_W is still "floor"

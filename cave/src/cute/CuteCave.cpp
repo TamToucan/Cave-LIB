@@ -226,10 +226,17 @@ CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,
 
 ///////////////////////////////////////////////////////////////////////
 
+CuteCave &CuteCave::setPostGenerateHook(
+    std::function<void(Cave::TileMap &)> hook) {
+  m_post_generate_hook = std::move(hook);
+  return *this;
+}
+
 const Cave::TileMap CuteCave::make_cave(int seed) {
   m_gen_params.seed = seed;
 
   Cave::Cave cave(m_info, m_gen_params);
+  cave.setPostGenerateHook(m_post_generate_hook);
   return cave.generate();
 }
 

@@ -11,6 +11,7 @@
  */
 
 #include <cute.h>
+#include <functional>
 #include <string>
 
 #include "CaveInfo.h"
@@ -101,6 +102,11 @@ public:
   /// Load a CF tile-atlas PNG and slice it into per-tile CF_Sprites.
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
 
+  /// Install a hook run after backend generation and before room-join/smoothing
+  /// (Cave::generate). Forwarded to the Cave that make_cave builds. Lets the
+  /// client stamp template tiles into the map. Null = no-op.
+  CuteCave &setPostGenerateHook(std::function<void(Cave::TileMap &)> hook);
+
   /// Run Cave::generate() with the configured params; returns the TileMap.
   const Cave::TileMap make_cave(int seed);
 
@@ -112,6 +118,8 @@ public:
 private:
   Cave::CaveInfo m_info;
   Cave::GenerationParams m_gen_params;
+  /// Forwarded to Cave::setPostGenerateHook inside make_cave. Null = no-op.
+  std::function<void(Cave::TileMap &)> m_post_generate_hook;
 };
 
 } // namespace CuteCave

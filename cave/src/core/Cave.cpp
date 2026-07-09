@@ -82,11 +82,21 @@ TileMap Cave::generate() {
   }
 
   fixUp(tileMap);
+  // Client template overlay runs here: after the backend + fixUp, before
+  // room-join and smoothing, so tunnels route to the template floor and the
+  // smoother rounds cave edges against it (client_template_tiles.md C-06).
+  if (mPostGenerateHook) {
+    mPostGenerateHook(tileMap);
+  }
   auto floorMaps = findRooms(tileMap);
   joinRooms(tileMap, floorMaps);
   smooth(tileMap);
 
   return tileMap;
+}
+
+void Cave::setPostGenerateHook(std::function<void(TileMap &)> hook) {
+  mPostGenerateHook = std::move(hook);
 }
 
 void Cave::initialise(TileMap &tileMap) {
@@ -681,6 +691,15 @@ Vector2i Cave::getMapPos(int cx, int cy) { return {1 + cx, 1 + cy}; }
 
 void Cave::setCell(TileMap &tileMap, int x, int y, int tile) {
   Vector2i mapPos = getMapPos(x, y);
+  // Reserved-id cells (client template tiles, >= CLIENT_TILE_BASE) are
+  // immutable once stamped: post-generate stages (tunnel carving via
+  // drawTunnel, CaveSmoother) never overwrite them (client_template_tiles.md
+  // C-04). The guard keys on the EXISTING value, so the client hook can still
+  // stamp a reserved id onto a built-in cell; only later overwrites are
+  // suppressed. Tunnels still route through the template's built-in FLOOR.
+  if (tileMap[mapPos.y][mapPos.x] >= CLIENT_TILE_BASE) {
+    return;
+  }
   tileMap[mapPos.y][mapPos.x] = tile;
 }
 

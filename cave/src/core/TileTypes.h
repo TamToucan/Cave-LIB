@@ -175,6 +175,12 @@ enum TileName {
   IGNORE
 };
 
+/// First tile id reserved for client-defined template tiles. Ids >= this are
+/// never produced by the core generator; they are owned entirely by the client
+/// (see CuteLott specs/features/client_template_tiles.md). Power-of-2, well
+/// past IGNORE so built-in TileName values stay frozen.
+constexpr int CLIENT_TILE_BASE = 1024;
+
 } // namespace Cave
 
 #endif
