@@ -887,6 +887,23 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::CHEST_OPEN_W:
     return Idx(6, 7);
 
+  // Short-side end-caps: two authored sprites, all orientations reached by the
+  // client's D4 rotation table (0,6 = one side short, 1,6 = both).
+  case TileName::END_N_CTE:
+  case TileName::END_N_CTW:
+  case TileName::END_S_CTE:
+  case TileName::END_S_CTW:
+  case TileName::END_E_CTN:
+  case TileName::END_E_CTS:
+  case TileName::END_W_CTN:
+  case TileName::END_W_CTS:
+    return Idx(0, 6);
+  case TileName::END_N_CT2:
+  case TileName::END_S_CT2:
+  case TileName::END_E_CT2:
+  case TileName::END_W_CT2:
+    return Idx(1, 6);
+
   default:
     return Idx(0, 7); // Default to FLOOR
   }

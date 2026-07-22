@@ -164,6 +164,28 @@ enum TileName {
   CHEST_OPEN_E,
   CHEST_OPEN_W,
 
+  // End-caps whose SIDE edge line stops short of the root corner, so it meets
+  // the chamfer of an adjacent DEND/CORNR instead of running past it and
+  // double-marking the boundary (CuteLott specs/features/wall_edge_effects.md).
+  // Identical collision to the plain END — only a painted line moves. Suffix
+  // names the shortened side(s); CT2 = both. Placed by the smoother's
+  // retargetEndCaps pass, never by a match grid.
+  // Appended here, not beside END_W, so no existing tile id shifts: the
+  // TileRotationTable is a positional array and a shift would misalign it
+  // silently.
+  END_N_CTE,
+  END_N_CTW,
+  END_N_CT2,
+  END_S_CTE,
+  END_S_CTW,
+  END_S_CT2,
+  END_E_CTN,
+  END_E_CTS,
+  END_E_CT2,
+  END_W_CTN,
+  END_W_CTS,
+  END_W_CT2,
+
   // Generic wall, input to the smoother.
   WALL,
 

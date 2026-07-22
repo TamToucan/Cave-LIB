@@ -354,6 +354,120 @@ UpdateInfo diagonalUpdates[] = {
 };
 
 //
+// Short-side end-caps (CuteLott specs/features/wall_edge_effects.md).
+//
+// A DEND/CORNR chamfer moves the floor boundary a quarter-tile inside the
+// tile, but an adjacent END cap's art paints its side edge line full length,
+// so past that corner the two overlap and the boundary reads as two lines.
+// After the corner pass has placed the rounded tiles, retarget any END cap
+// meeting one of those chamfers to the variant whose side line stops short.
+// A plain WALL needs nothing: the client draws its edges in code, per face,
+// and already shortens them at chamfers.
+//
+// Corner bits, A=TL B=TR C=BR D=BL (TileTypes.h).
+static const int CN_A = 1, CN_B = 2, CN_C = 4, CN_D = 8;
+
+/// Corners cut away from a tile: the rounded floor tiles, and for END caps
+/// their own tip chamfers — which tell us whether a cap's edge line even
+/// reaches a given corner.
+static int cutCorners(int tile) {
+  switch (tile) {
+  case DEND_N: return CN_A | CN_B;
+  case DEND_S: return CN_C | CN_D;
+  case DEND_E: return CN_B | CN_C;
+  case DEND_W: return CN_A | CN_D;
+  case CORNR_A: return CN_A;
+  case CORNR_B: return CN_B;
+  case CORNR_C: return CN_C;
+  case CORNR_D: return CN_D;
+  case END_N: case END_N_CTE: case END_N_CTW: case END_N_CT2:
+    return CN_A | CN_B;
+  case END_S: case END_S_CTE: case END_S_CTW: case END_S_CT2:
+    return CN_C | CN_D;
+  case END_E: case END_E_CTN: case END_E_CTS: case END_E_CT2:
+    return CN_B | CN_C;
+  case END_W: case END_W_CTN: case END_W_CTS: case END_W_CT2:
+    return CN_A | CN_D;
+  default: return 0;
+  }
+}
+
+/// Any end-cap, plain or short-sided. Counts as SOLID for the corner pass.
+static bool isEndCap(int tile) {
+  switch (tile) {
+  case END_N: case END_N_CTE: case END_N_CTW: case END_N_CT2:
+  case END_S: case END_S_CTE: case END_S_CTW: case END_S_CT2:
+  case END_E: case END_E_CTN: case END_E_CTS: case END_E_CT2:
+  case END_W: case END_W_CTN: case END_W_CTS: case END_W_CT2:
+    return true;
+  default: return false;
+  }
+}
+
+static bool isRoundedFloor(int tile) {
+  return tile == DEND_N || tile == DEND_S || tile == DEND_E || tile == DEND_W ||
+         tile == CORNR_A || tile == CORNR_B || tile == CORNR_C ||
+         tile == CORNR_D;
+}
+
+/// Shorten the cap's edge line on the side facing (dx,dy). Returns the tile
+/// unchanged when that side is the cap's tip or its back — neither carries a
+/// side line to shorten — or when it is already shortened there.
+static int retractEndCap(int tile, int dx, int dy) {
+  const bool east = dx > 0, west = dx < 0, north = dy < 0, south = dy > 0;
+  switch (tile) {
+  // N/S caps point along Y, so their side lines are east and west.
+  case END_N:     return east ? END_N_CTE : west ? END_N_CTW : tile;
+  case END_N_CTE: return west ? END_N_CT2 : tile;
+  case END_N_CTW: return east ? END_N_CT2 : tile;
+  case END_S:     return east ? END_S_CTE : west ? END_S_CTW : tile;
+  case END_S_CTE: return west ? END_S_CT2 : tile;
+  case END_S_CTW: return east ? END_S_CT2 : tile;
+  // E/W caps point along X, so their side lines are north and south.
+  case END_E:     return north ? END_E_CTN : south ? END_E_CTS : tile;
+  case END_E_CTN: return south ? END_E_CT2 : tile;
+  case END_E_CTS: return north ? END_E_CT2 : tile;
+  case END_W:     return north ? END_W_CTN : south ? END_W_CTS : tile;
+  case END_W_CTN: return south ? END_W_CT2 : tile;
+  case END_W_CTS: return north ? END_W_CT2 : tile;
+  default: return tile; // already shortened both sides, or not a cap
+  }
+}
+
+static void retargetEndCaps(TileMap &tileMap, int w, int h) {
+  // Each chamfered corner is shared with two orthogonal neighbours. Crossing
+  // the shared edge mirrors the corner letter, so the same physical point is
+  // a different corner on the neighbour.
+  struct CornerLink { int corner, dx, dy, nbrCorner; };
+  static const CornerLink kLinks[] = {
+      {CN_A, -1, 0, CN_B}, {CN_A, 0, -1, CN_D}, // top-left:     west, north
+      {CN_B, 1, 0, CN_A},  {CN_B, 0, -1, CN_C}, // top-right:    east, north
+      {CN_C, 1, 0, CN_D},  {CN_C, 0, 1, CN_B},  // bottom-right: east, south
+      {CN_D, -1, 0, CN_C}, {CN_D, 0, 1, CN_A},  // bottom-left:  west, south
+  };
+
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      const int tile = Cave::getTile(tileMap, x, y);
+      if (!isRoundedFloor(tile)) continue;
+      const int cuts = cutCorners(tile);
+      for (const CornerLink &l : kLinks) {
+        if (!(cuts & l.corner)) continue;
+        const int nx = x + l.dx, ny = y + l.dy;
+        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        const int nbr = Cave::getTile(tileMap, nx, ny);
+        if (!isEndCap(nbr)) continue;
+        // The cap's own tip chamfer already stops its line short there.
+        if (cutCorners(nbr) & l.nbrCorner) continue;
+        // Face direction is back toward this cell.
+        const int upd = retractEndCap(nbr, -l.dx, -l.dy);
+        if (upd != nbr) Cave::setCell(tileMap, nx, ny, upd);
+      }
+    }
+  }
+}
+
+//
 // For rounding anywhere there is a sharp point e.g.
 // two adjacent 45 degree slopes /\.
 typedef TileName TileName2x2[2][2];
@@ -814,16 +928,17 @@ void CaveSmoother::smoothCorners(std::vector<std::vector<bool>> &smoothedGrid) {
       // the smoothed tiles are treated as not set, hence I pass in the
       // smoothedGrid
       bool isWall = Cave::isWall(mTileMap, x, y) ||
-                    Cave::isTile(mTileMap, x, y, END_N) ||
-                    Cave::isTile(mTileMap, x, y, END_S) ||
-                    Cave::isTile(mTileMap, x, y, END_E) ||
-                    Cave::isTile(mTileMap, x, y, END_W);
+                    isEndCap(Cave::getTile(mTileMap, x, y));
       inGrid[y + 1][x + 1] = isWall                          ? SOLID
                              : Cave::isFloor(mTileMap, x, y) ? FLOOR
                                                              : IGNORE;
     }
   }
   smoothTheGrid(cornerUpdates, inGrid, smoothedGrid);
+  // Runs after, so it sees the DEND/CORNR tiles the pass just wrote (inGrid
+  // was snapshotted before it, and matches on solid/blank only, so it cannot
+  // express "neighbour is a rounded tile" itself).
+  retargetEndCaps(mTileMap, mInfo.mCaveWidth, mInfo.mCaveHeight);
 }
 
 void CaveSmoother::smoothPoints() {
