@@ -33,12 +33,15 @@ using TileMap = std::vector<std::vector<int>>;
 // For exampleto make a  60 degree slope with the right angle at the
 // bottom left requires 2 tiles; V60d1 and (above it) H60d2
 //
-//         a
-//   V60d2 |\     "thin" end
-//         | \
-//   V60d1 |  \
-//         |__\  "thicj" end
-//         d   c
+// (Block comment: a // line ending in a backslash warns -Wcomment.)
+/*
+           a
+     V60d2 |\     "thin" end
+           | \
+     V60d1 |  \
+           |__\  "thicj" end
+           d   c
+*/
 //
 // -2CT means both corners are cut off. This is ontl T45 tiles (since
 //  a single H30 and V60  tile only has 1 corner)
