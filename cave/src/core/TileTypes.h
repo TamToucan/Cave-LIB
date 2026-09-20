@@ -189,6 +189,12 @@ enum TileName {
   END_W_CTS,
   END_W_CT2,
 
+  // Sigil rune for the Sigil Circuit (CuteLott specs/features/sigil_circuit.md).
+  // Placed like LADDER_* and CHEST_*: a post-generation tile-graphic swap, so
+  // the wall grid and DistanceMap are already baked and unaffected. Passable
+  // (no collider). Appended here so no existing tile id shifts.
+  RUNE,
+
   // Generic wall, input to the smoother.
   WALL,
 

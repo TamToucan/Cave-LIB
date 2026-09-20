@@ -860,6 +860,8 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::STAIRS_UP:
     return Idx(5, 5);
 
+  case TileName::RUNE:
+    return Idx(6, 4);
   case TileName::LADDER_DN:
     return Idx(5, 6);
   case TileName::LADDER_UP:
