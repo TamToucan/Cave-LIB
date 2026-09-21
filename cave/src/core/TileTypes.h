@@ -189,11 +189,23 @@ enum TileName {
   END_W_CTS,
   END_W_CT2,
 
-  // Sigil rune for the Sigil Circuit (CuteLott specs/features/sigil_circuit.md).
-  // Placed like LADDER_* and CHEST_*: a post-generation tile-graphic swap, so
-  // the wall grid and DistanceMap are already baked and unaffected. Passable
-  // (no collider). Appended here so no existing tile id shifts.
-  RUNE,
+  // Sigil runes (CuteLott specs/features/sigil_circuit.md) and vantage
+  // lookouts (vantage_point.md). Two authored tiles each: the client swaps
+  // between them at the moment the state changes, exactly as CHEST_CLOSE_*
+  // becomes CHEST_OPEN_*. Placed like LADDER_* and CHEST_* by a
+  // post-generation tile-graphic swap, so the wall grid and DistanceMap are
+  // already baked and unaffected. Passable (no collider).
+  //
+  // NOTE these are ahead of WALL and SOLID, so adding RUNE shifted BOTH of
+  // those ids by one — the exact hazard the END_*_CT block above warns
+  // about, and it went unnoticed: CuteLott's positional kTileRotationTable
+  // was not extended, WALL took the SOLID row, and the solid wall tile
+  // stopped being drawn. Past SOLID is not an option (TILE_COUNT bounds the
+  // sprite array), so the table now carries a tail assert instead.
+  RUNE,         ///< sigil, not yet marked
+  RUNE_LIT,     ///< sigil, marked
+  VANTAGE,      ///< lookout, reveal unspent
+  VANTAGE_USED, ///< lookout, reveal spent
 
   // Generic wall, input to the smoother.
   WALL,

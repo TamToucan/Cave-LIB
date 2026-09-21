@@ -860,8 +860,18 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::STAIRS_UP:
     return Idx(5, 5);
 
+  // Sigil and vantage state pairs. These four cells are also named by
+  // CORNR_D (7,4), END_W (7,6) and DEND_W (7,7), which is harmless: all
+  // three reach their art through a canonical sibling in CuteLott's
+  // rotation table, so their own sprite is built and never drawn.
   case TileName::RUNE:
+    return Idx(7, 4);
+  case TileName::RUNE_LIT:
     return Idx(6, 4);
+  case TileName::VANTAGE:
+    return Idx(7, 6);
+  case TileName::VANTAGE_USED:
+    return Idx(7, 7);
   case TileName::LADDER_DN:
     return Idx(5, 6);
   case TileName::LADDER_UP:
