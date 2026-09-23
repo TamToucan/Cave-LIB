@@ -212,6 +212,19 @@ enum TileName {
 
   // Special values for smoother internal grids.
   SOLID,
+
+  // Home world-map stone (CuteLott specs/features/world_lore_map.md WK-20).
+  // Placed like LADDER_* / RUNE by a post-generation tile-graphic swap, so
+  // the wall grid and DistanceMap are already baked. Passable (no collider).
+  //
+  // Deliberately AFTER SOLID, unlike RUNE: appending here shifts no existing
+  // id, which is the hazard the RUNE note above records. Only TILE_COUNT
+  // moves, and that is a count. Its atlas cell (7,5) already held an unused
+  // sigil-style graphic — mapped to H30b1, which the rotation table always
+  // draws from a canonical sprite instead, so the cell itself was never
+  // sampled.
+  WORLD_STONE,
+
   TILE_COUNT,
 
   // NOTE: No sprite created past TILE_COUNT

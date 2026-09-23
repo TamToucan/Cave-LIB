@@ -720,6 +720,12 @@ int Cave::getAtlasIndex(int tile) {
   case TileName::WALL:
     return Idx(1, 7);
 
+  // The cell H30b1 also names. H30b1 is always rendered from a canonical
+  // sprite plus a rotation, so this art was never drawn for it; the stone
+  // claims it rather than spending one of the atlas's last free cells.
+  case TileName::WORLD_STONE:
+    return Idx(7, 5);
+
   case TileName::T45a:
     return Idx(2, 6);
   case TileName::T45b:
