@@ -5,7 +5,7 @@
  * @file Cave.h
  * @brief Top-level cave generator orchestrator.
  * @details Dispatches to a generator backend (Cellular, Voronoi, Heightmap,
- * DLA, BSP Tectonic, Mine, City, Veins) selected via GenerationParams::mCaveType, then runs the
+ * DLA, BSP Tectonic, Mine, City, Veins, Zones) selected via GenerationParams::mCaveType, then runs the
  * shared post-processing pipeline: cellular-automata smoothing, room
  * detection, MST-based room joining via organic tunnels, and final edge/corner
  * smoothing. Output is a TileMap of TileName values.
@@ -87,10 +87,8 @@ public:
   std::string getParamsString() const;
 
 private:
-  /// Fill tileMap with the initial random/noise pattern per CaveType.
+  /// Write the 1-tile border wall round tileMap.
   void initialise(TileMap &tileMap);
-  /// Run the configured cellular-automata generation steps.
-  void runCellularAutomata(TileMap &tileMap);
   /// Patch isolated 1-cell walls/floors that confuse the smoother.
   void fixUp(TileMap &tileMap);
   /// Flood-fill rooms and return (cell->roomId, roomId->cells) maps.

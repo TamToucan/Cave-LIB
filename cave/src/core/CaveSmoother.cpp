@@ -10,6 +10,12 @@
 
 namespace Cave {
 
+/// SK-01 (cave_smoother_keep_open.md): false if writing `tile` at cave cell
+/// (x, y) would make a walkable cell solid.
+static bool keepsWalkable(const TileMap &tm, int x, int y, int tile) {
+  return !Cave::isEmpty(tm, x, y) || Cave::isEmpty(tile);
+}
+
 //
 // There are
 // - 4 tiles for the 45 degree slopes (T45_<corner>
@@ -832,8 +838,13 @@ bool CaveSmoother::smoothTheGrid(UpdateInfo (&updateInfos)[SZ],
                                        << pos2.y);
           // Ensure not smoothed it already
           // - can check both pos since p2 == p1 if no 2nd tile
+          // Never make a walkable cell solid; a two-tile slope is written
+          // whole or not at all (cave_smoother_keep_open.md SK-01, SK-02).
           if ((smoothedGrid[pos1.y][pos1.x] == false) &&
-              (smoothedGrid[pos2.y][pos2.x] == false)) {
+              (smoothedGrid[pos2.y][pos2.x] == false) &&
+              keepsWalkable(mTileMap, pos1.x - 1, pos1.y - 1, up.t1) &&
+              (up.t2 == IGNORE ||
+               keepsWalkable(mTileMap, pos2.x - 1, pos2.y - 1, up.t2))) {
             LOG_DEBUG("         SMOOTH1 -> " << up.t1);
             // Smooth the first (N/O) tile
             // - Need to translate the grid pos back to cave pos
@@ -971,7 +982,9 @@ void CaveSmoother::smoothPoints() {
               }
             }
           }
-          if (match) {
+          // SK-01: a CUT form never lands on a walkable cell.
+          if (match &&
+              keepsWalkable(mTileMap, x + up.xoff1, y + up.yoff1, up.tile1)) {
             LOG_DEBUG("...FULL MATCH set:" << x + 1 + up.xoff1 << ","
                                            << y + 1 + up.yoff1
                                            << " tile:" << up.tile1);

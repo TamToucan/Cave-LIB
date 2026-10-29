@@ -7,7 +7,7 @@
  * @details GenerationParams is the single bag of settings handed to Cave().
  * mCaveType selects which backend runs; per-backend sub-structs
  * (CellularParams, VoronoiParams, HeightmapParams, DLAParams,
- * BspTectonicParams, MineParams, CityParams, VeinsParams) hold the parameters for that backend. TunnelParams is
+ * BspTectonicParams, MineParams, CityParams, VeinsParams, ZonesParams) hold the parameters for that backend. TunnelParams is
  * shared — it controls how rooms detected after the backend runs are
  * connected.
  */
@@ -27,6 +27,7 @@ enum class CaveType {
   MINE,
   CITY,
   VEINS,
+  ZONES,
   EMPTY
 };
 
@@ -241,6 +242,23 @@ struct VeinsParams {
 };
 
 /**
+ * @struct ZonesParams
+ * @brief Parameters for the mixed-zones generator (CaveZones).
+ * @details SPECIFICATION: specs/features/cave_gen_zones.md. A layout splits
+ * the map into slots; each slot runs another backend; joins cross the wall
+ * borders. Slot values come from the other backends' blocks here.
+ */
+struct ZonesParams {
+  int mLayout = 1;                 ///< 0 GAUNTLET, 1 LAIR, 2 HARD_CENTRE, 3 QUAD
+  float mSplitJitter = 0.1f;       ///< split shift, share of slot length
+  float mCentreSize = 0.4f;        ///< HARD_CENTRE: centre / map side
+  int mSlotType[4] = {1, 3, 1, 3}; ///< index into CaveZones' slot type list
+  int mBorderWidth = 3;            ///< wall between slots
+  int mJoinsPerBorder = 2;         ///< corridors across each border
+  int mJoinWidth = 3;              ///< corridor width
+};
+
+/**
  * @struct GenerationParams
  * @brief Top-level container of all parameters used by Cave::generate().
  * @details mCaveType picks which backend runs; only the matching sub-struct is
@@ -259,6 +277,7 @@ struct GenerationParams {
   MineParams mine;
   CityParams city;
   VeinsParams veins;
+  ZonesParams zones;
 };
 
 } // namespace Cave

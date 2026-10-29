@@ -6,17 +6,17 @@
 
 #include "Cave.h"
 #include "CaveBspTectonic.h"
+#include "CaveCellular.h"
 #include "CaveCity.h"
 #include "CaveDLA.h"
 #include "CaveHeightmap.h"
 #include "CaveMine.h"
 #include "CaveSmoother.h"
 #include "CaveVeins.h"
+#include "CaveZones.h"
 #include "Debug.h"
 #include "DisjointSets.h"
-#include "RandSimple.h"
 #include "RandUniversal.h" // Added as per instruction
-#include "RogueCave.hpp"
 #include "SimplexNoise.h"
 #include "TileTypes.h"
 #include "VoronoiNoise.h"
@@ -66,11 +66,15 @@ TileMap Cave::generate() {
   case CaveType::VEINS:
     genMap = CaveVeins::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
     break;
+  case CaveType::ZONES:
+    genMap = CaveZones::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
   case CaveType::EMPTY:
     genMap = generateEmpty(mInfo.mCaveWidth, mInfo.mCaveHeight);
     break;
   default:
-    runCellularAutomata(tileMap);
+    genMap =
+        CaveCellular::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
     break;
   }
 
@@ -112,8 +116,6 @@ void Cave::setPostGenerateHook(std::function<void(TileMap &)> hook) {
 }
 
 void Cave::initialise(TileMap &tileMap) {
-  RNG::RandSimple simple(mParams.seed);
-
   //
   // Make the border
   // - Top/Bottom
@@ -126,69 +128,6 @@ void Cave::initialise(TileMap &tileMap) {
   for (int cy = 0; cy < 2 + mInfo.mCaveHeight; ++cy) {
     setCell(tileMap, -1, cy - 1, WALL);
     setCell(tileMap, mInfo.mCaveWidth, cy - 1, WALL);
-  }
-
-  //
-  // Fill with random or simplex noise
-  //
-  const double W = mInfo.mCaveWidth - 1 + mParams.cellular.mAmp;
-  const double H = mInfo.mCaveHeight - 1 + mParams.cellular.mAmp;
-  // Seed-derived z-slice so Simplex output varies per seed (matches
-  // CaveHeightmap pattern)
-  const double zOffset = (mParams.seed % 10000) / 100.0;
-
-  for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
-    for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
-      double x = cx / W * mParams.cellular.mFreq;
-      double y = cy / H * mParams.cellular.mFreq;
-
-      double n1 =
-          mParams.cellular.mPerlin
-              ? Algo::getSNoise3(x, y, zOffset, mParams.cellular.mOctaves)
-              : simple.getFloat() - mParams.cellular.mWallChance;
-      setCell(tileMap, cx, cy, (n1 < 0) ? WALL : FLOOR);
-    }
-  }
-}
-
-void Cave::runCellularAutomata(TileMap &tileMap) {
-  if (!mParams.cellular.mGenerations.empty()) {
-    // initialise the RogueCave grid from the TileMap
-    PCG::RogueCave cave(mInfo.mCaveWidth, mInfo.mCaveHeight);
-    std::vector<std::vector<int>> &gridIn = cave.getGrid();
-    for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
-      for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
-        gridIn[cy][cx] = Cave::isWall(tileMap, cx, cy)
-                             ? PCG::RogueCave::TILE_WALL
-                             : PCG::RogueCave::TILE_FLOOR;
-        LOG_DEBUG_CONT(
-            ((gridIn[cy][cx] == PCG::RogueCave::TILE_FLOOR) ? ' ' : '#'));
-      }
-      LOG_DEBUG(" ");
-    }
-
-    // run the cellular automata
-    for (const auto &gen : mParams.cellular.mGenerations) {
-      Util::IntRange b3(gen.b3_min, gen.b3_max);
-      Util::IntRange b5(gen.b5_min, gen.b5_max);
-      Util::IntRange s3(gen.s3_min, gen.s3_max);
-      Util::IntRange s5(gen.s5_min, gen.s5_max);
-      cave.addGeneration(b3, b5, s3, s5, gen.reps);
-    }
-    std::vector<std::vector<int>> &gridOut = cave.generate();
-
-    // Copy the RogueCave grid back to the TileMap
-    LOG_DEBUG("-----GRID OUT-----");
-    for (int cy = 0; cy < mInfo.mCaveHeight; ++cy) {
-      for (int cx = 0; cx < mInfo.mCaveWidth; ++cx) {
-        auto tile =
-            (gridOut[cy][cx] == PCG::RogueCave::TILE_WALL) ? WALL : FLOOR;
-        setCell(tileMap, cx, cy, tile);
-        LOG_DEBUG_CONT(
-            ((gridOut[cy][cx] == PCG::RogueCave::TILE_FLOOR) ? ' ' : '#'));
-      }
-      LOG_DEBUG(" ");
-    }
   }
 }
 
@@ -1016,6 +955,12 @@ std::string Cave::getParamsString() const {
     ss << " - Width: " << mParams.veins.mMinWidth << ".."
        << mParams.veins.mMaxWidth << "\n";
     ss << " - LoopRate: " << mParams.veins.mLoopRate << "\n";
+    break;
+  case CaveType::ZONES:
+    ss << " ZONES\n";
+    ss << " - Layout: " << mParams.zones.mLayout << "\n";
+    ss << " - Slots: " << mParams.zones.mSlotType[0] << "," << mParams.zones.mSlotType[1]
+       << "," << mParams.zones.mSlotType[2] << "," << mParams.zones.mSlotType[3] << "\n";
     break;
   case CaveType::EMPTY:
     ss << " EMPTY\n";
