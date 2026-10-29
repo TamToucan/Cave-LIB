@@ -156,6 +156,16 @@ CuteCave::setBspTectonicCaParams(int octaves, bool usePerlin, float wallChance,
   return *this;
 }
 
+CuteCave &CuteCave::setMineParams(const Cave::MineParams &params) {
+  m_gen_params.mine = params;
+  return *this;
+}
+
+CuteCave &CuteCave::setCityParams(const Cave::CityParams &params) {
+  m_gen_params.city = params;
+  return *this;
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,

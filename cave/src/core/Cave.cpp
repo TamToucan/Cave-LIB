@@ -6,8 +6,10 @@
 
 #include "Cave.h"
 #include "CaveBspTectonic.h"
+#include "CaveCity.h"
 #include "CaveDLA.h"
 #include "CaveHeightmap.h"
+#include "CaveMine.h"
 #include "CaveSmoother.h"
 #include "Debug.h"
 #include "DisjointSets.h"
@@ -53,6 +55,12 @@ TileMap Cave::generate() {
   case CaveType::BSP_TECTONIC:
     genMap =
         CaveBspTectonic::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::MINE:
+    genMap = CaveMine::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::CITY:
+    genMap = CaveCity::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
     break;
   case CaveType::EMPTY:
     genMap = generateEmpty(mInfo.mCaveWidth, mInfo.mCaveHeight);
@@ -979,6 +987,22 @@ std::string Cave::getParamsString() const {
     ss << " - BspDepth: " << mParams.bspTectonic.mBspDepth << "\n";
     ss << " - MinRoomSize: " << mParams.bspTectonic.mMinRoomSize << "\n";
     ss << " - RoomPadding: " << mParams.bspTectonic.mRoomPadding << "\n";
+    break;
+  case CaveType::MINE:
+    ss << " MINE\n";
+    ss << " - EntryWidth: " << mParams.mine.mEntryWidth << "\n";
+    ss << " - PillarSize: " << mParams.mine.mPillarSize << "\n";
+    ss << " - PillarLength: " << mParams.mine.mPillarLength << "\n";
+    ss << " - MainEntries: " << mParams.mine.mMainEntries << "\n";
+    ss << " - PanelWidth: " << mParams.mine.mPanelWidth << "\n";
+    break;
+  case CaveType::CITY:
+    ss << " CITY\n";
+    ss << " - WardSize: " << mParams.city.mWardSize << "\n";
+    ss << " - BlockMin: " << mParams.city.mBlockMin << "\n";
+    ss << " - BlockMax: " << mParams.city.mBlockMax << "\n";
+    ss << " - StreetWidth: " << mParams.city.mStreetWidth << "\n";
+    ss << " - GridMode: " << mParams.city.mGridMode << "\n";
     break;
   case CaveType::EMPTY:
     ss << " EMPTY\n";

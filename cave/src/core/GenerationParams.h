@@ -7,7 +7,7 @@
  * @details GenerationParams is the single bag of settings handed to Cave().
  * mCaveType selects which backend runs; per-backend sub-structs
  * (CellularParams, VoronoiParams, HeightmapParams, DLAParams,
- * BspTectonicParams) hold the parameters for that backend. TunnelParams is
+ * BspTectonicParams, MineParams, CityParams) hold the parameters for that backend. TunnelParams is
  * shared — it controls how rooms detected after the backend runs are
  * connected.
  */
@@ -17,7 +17,17 @@
 namespace Cave {
 
 /// Generator backend selector. Picks which algorithm Cave::generate() runs.
-enum class CaveType { CELLULAR, VORONOI, HEIGHTMAP, DLA, BSP_TECTONIC, EMPTY };
+/// EMPTY stays last: clients size per-type tables as EMPTY + 1.
+enum class CaveType {
+  CELLULAR,
+  VORONOI,
+  HEIGHTMAP,
+  DLA,
+  BSP_TECTONIC,
+  MINE,
+  CITY,
+  EMPTY
+};
 
 /**
  * @struct GenerationStep
@@ -158,6 +168,57 @@ struct BspTectonicParams {
 };
 
 /**
+ * @struct MineParams
+ * @brief Parameters for the room-and-pillar mine generator (CaveMine).
+ * @details SPECIFICATION: specs/features/cave_gen_mine.md. Lengths in tiles,
+ * shares 0..1. A main of parallel entries runs the long axis; walled panels
+ * open off both sides, each PILLAR, ROBBED, LONGWALL or UNMINED. Halls and
+ * 2-wide openings make each panel and the main a room for the room finder.
+ */
+struct MineParams {
+  int mEntryWidth = 3;          ///< tunnel width, main and panels
+  int mPillarSize = 4;          ///< pillar side across the entries
+  int mPillarLength = 6;        ///< pillar side along the entries
+  int mMainEntries = 3;         ///< parallel entries in the main
+  int mPanelWidth = 32;         ///< panel width along the main
+  int mBarrierWidth = 3;        ///< solid wall between panels / main
+  int mBarrierOpenings = 2;     ///< openings per panel into the main
+  float mSideOpenChance = 0.3f; ///< opening between neighbour panels
+  float mRobbedShare = 0.3f;
+  float mLongwallShare = 0.15f;
+  float mUnminedShare = 0.1f;
+  float mRobChance = 0.5f;      ///< per pillar, ROBBED panels
+  float mRubbleChance = 0.3f;   ///< removed pillar leaves a crushed stub
+  float mSeamDepthMin = 0.5f;   ///< least share of full panel depth kept
+  int mHallSize = 9;            ///< panel hall side, main hall length (>= 7)
+  int mMainHallSpacing = 48;    ///< main hall every this many tiles
+};
+
+/**
+ * @struct CityParams
+ * @brief Parameters for the buried-city generator (CaveCity).
+ * @details SPECIFICATION: specs/features/cave_gen_city.md. Lengths in tiles;
+ * blockRate = block tries per 1000 ward tiles; shares 0..1. Walled wards
+ * joined by 2-wide gates, each with a plaza hall, filled with blocks and
+ * hollow buildings.
+ */
+struct CityParams {
+  int mWardSize = 28;         ///< target ward side (with its wall)
+  int mWardWall = 2;          ///< wall thickness between wards
+  int mWardJitter = 3;        ///< ward split line shift, tiles
+  int mPlazaSize = 9;         ///< plaza side, max (min 7)
+  int mBlockMin = 4;          ///< block side, min (ordered with mBlockMax)
+  int mBlockMax = 12;         ///< block side, max; also the grow cap
+  int mStreetWidth = 2;       ///< clear ring round every block
+  float mBlockRate = 20.0f;   ///< tries per 1000 ward tiles
+  float mHollowShare = 0.2f; ///< blocks (>= 5x5) made hollow
+  int mDoorsMax = 2;          ///< doors per hollow building, 1..this
+  int mDoorWidth = 2;         ///< 1 = tight chokepoint, max 2
+  bool mGridMode = false;     ///< false = chaotic, true = lattice
+  int mGridJitter = 1;        ///< lattice slot shift, tiles
+};
+
+/**
  * @struct GenerationParams
  * @brief Top-level container of all parameters used by Cave::generate().
  * @details mCaveType picks which backend runs; only the matching sub-struct is
@@ -173,6 +234,8 @@ struct GenerationParams {
   DLAParams dla;
   TunnelParams tunnel;
   BspTectonicParams bspTectonic;
+  MineParams mine;
+  CityParams city;
 };
 
 } // namespace Cave

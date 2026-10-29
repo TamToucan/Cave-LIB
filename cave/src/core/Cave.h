@@ -5,7 +5,7 @@
  * @file Cave.h
  * @brief Top-level cave generator orchestrator.
  * @details Dispatches to a generator backend (Cellular, Voronoi, Heightmap,
- * DLA, BSP Tectonic) selected via GenerationParams::mCaveType, then runs the
+ * DLA, BSP Tectonic, Mine, City) selected via GenerationParams::mCaveType, then runs the
  * shared post-processing pipeline: cellular-automata smoothing, room
  * detection, MST-based room joining via organic tunnels, and final edge/corner
  * smoothing. Output is a TileMap of TileName values.

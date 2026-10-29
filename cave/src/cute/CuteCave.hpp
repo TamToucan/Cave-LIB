@@ -98,6 +98,10 @@ public:
   CuteCave &setBspTectonicCaParams(int octaves, bool usePerlin,
                                    float wallChance, float freq, float amp,
                                    std::vector<Cave::GenerationStep> gens);
+  /// Configure MineParams. See MineParams in GenerationParams.h.
+  CuteCave &setMineParams(const Cave::MineParams &params);
+  /// Configure CityParams. See CityParams in GenerationParams.h.
+  CuteCave &setCityParams(const Cave::CityParams &params);
 
   /// Load a CF tile-atlas PNG and slice it into per-tile CF_Sprites.
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
