@@ -7,7 +7,7 @@
  * @details GenerationParams is the single bag of settings handed to Cave().
  * mCaveType selects which backend runs; per-backend sub-structs
  * (CellularParams, VoronoiParams, HeightmapParams, DLAParams,
- * BspTectonicParams, MineParams, CityParams) hold the parameters for that backend. TunnelParams is
+ * BspTectonicParams, MineParams, CityParams, VeinsParams) hold the parameters for that backend. TunnelParams is
  * shared — it controls how rooms detected after the backend runs are
  * connected.
  */
@@ -26,6 +26,7 @@ enum class CaveType {
   BSP_TECTONIC,
   MINE,
   CITY,
+  VEINS,
   EMPTY
 };
 
@@ -219,6 +220,27 @@ struct CityParams {
 };
 
 /**
+ * @struct VeinsParams
+ * @brief Parameters for the vein-network generator (CaveVeins).
+ * @details SPECIFICATION: specs/features/cave_gen_veins.md. Space
+ * colonization. Lengths in tiles; loopRate = cross-links per 10000 tiles.
+ */
+struct VeinsParams {
+  int mAttractorSpacing = 6;   ///< jittered-grid square side
+  float mAttractorKeep = 0.8f; ///< chance a square gets an attractor
+  float mAttractDist = 18.0f;  ///< attractor reach (> killDist)
+  float mKillDist = 4.0f;      ///< attractor eaten within this
+  float mSegmentLen = 2.0f;    ///< growth step
+  int mRootCount = 1;
+  int mMinWidth = 2;           ///< tip width (<= maxWidth)
+  int mMaxWidth = 6;           ///< trunk width at the largest root
+  float mTipRoomChance = 0.15f;
+  int mTipRoomRadius = 4;
+  float mLoopRate = 2.0f;      ///< cross-links per 10000 tiles; 0 = tree
+  float mLoopDist = 10.0f;     ///< cross-link reach
+};
+
+/**
  * @struct GenerationParams
  * @brief Top-level container of all parameters used by Cave::generate().
  * @details mCaveType picks which backend runs; only the matching sub-struct is
@@ -236,6 +258,7 @@ struct GenerationParams {
   BspTectonicParams bspTectonic;
   MineParams mine;
   CityParams city;
+  VeinsParams veins;
 };
 
 } // namespace Cave

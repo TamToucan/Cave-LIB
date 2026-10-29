@@ -166,6 +166,11 @@ CuteCave &CuteCave::setCityParams(const Cave::CityParams &params) {
   return *this;
 }
 
+CuteCave &CuteCave::setVeinsParams(const Cave::VeinsParams &params) {
+  m_gen_params.veins = params;
+  return *this;
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 CuteCave::TileAtlas CuteCave::loadTileAtlas(const char *virtual_path,

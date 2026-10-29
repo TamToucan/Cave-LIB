@@ -11,6 +11,7 @@
 #include "CaveHeightmap.h"
 #include "CaveMine.h"
 #include "CaveSmoother.h"
+#include "CaveVeins.h"
 #include "Debug.h"
 #include "DisjointSets.h"
 #include "RandSimple.h"
@@ -61,6 +62,9 @@ TileMap Cave::generate() {
     break;
   case CaveType::CITY:
     genMap = CaveCity::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
+    break;
+  case CaveType::VEINS:
+    genMap = CaveVeins::generate(mInfo.mCaveWidth, mInfo.mCaveHeight, mParams);
     break;
   case CaveType::EMPTY:
     genMap = generateEmpty(mInfo.mCaveWidth, mInfo.mCaveHeight);
@@ -1003,6 +1007,15 @@ std::string Cave::getParamsString() const {
     ss << " - BlockMax: " << mParams.city.mBlockMax << "\n";
     ss << " - StreetWidth: " << mParams.city.mStreetWidth << "\n";
     ss << " - GridMode: " << mParams.city.mGridMode << "\n";
+    break;
+  case CaveType::VEINS:
+    ss << " VEINS\n";
+    ss << " - AttractorSpacing: " << mParams.veins.mAttractorSpacing << "\n";
+    ss << " - AttractDist: " << mParams.veins.mAttractDist << "\n";
+    ss << " - RootCount: " << mParams.veins.mRootCount << "\n";
+    ss << " - Width: " << mParams.veins.mMinWidth << ".."
+       << mParams.veins.mMaxWidth << "\n";
+    ss << " - LoopRate: " << mParams.veins.mLoopRate << "\n";
     break;
   case CaveType::EMPTY:
     ss << " EMPTY\n";

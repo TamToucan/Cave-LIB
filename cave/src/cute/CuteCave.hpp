@@ -102,6 +102,8 @@ public:
   CuteCave &setMineParams(const Cave::MineParams &params);
   /// Configure CityParams. See CityParams in GenerationParams.h.
   CuteCave &setCityParams(const Cave::CityParams &params);
+  /// Configure VeinsParams. See VeinsParams in GenerationParams.h.
+  CuteCave &setVeinsParams(const Cave::VeinsParams &params);
 
   /// Load a CF tile-atlas PNG and slice it into per-tile CF_Sprites.
   TileAtlas loadTileAtlas(const char *virtual_path, int tile_size);
